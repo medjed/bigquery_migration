@@ -9,7 +9,7 @@ require 'google/api_client/auth/key_utils'
 
 class BigquerySchemaMigration
   class BigqueryWrapper
-    attr_reader :config, :opts
+    attr_reader :config
 
     def logger
       BigquerySchemaMigration.logger
@@ -81,6 +81,10 @@ class BigquerySchemaMigration
       @opts[:dry_run]
     end
 
+    def head
+      dry_run? ? '(DRY-RUN) ' : '(EXECUTE) '
+    end
+
     def client
       return @cached_client if @cached_client && @cached_client_expiration > Time.now
 
@@ -131,7 +135,7 @@ class BigquerySchemaMigration
     def insert_dataset(dataset: nil, reference: nil)
       dataset ||= self.dataset
       begin
-        logger.info { "Insert (create) dataset... #{project}:#{dataset}" }
+        logger.info { "#{head}Insert (create) dataset... #{project}:#{dataset}" }
         hint = {}
         if reference
           response = get_dataset(reference)
@@ -144,12 +148,14 @@ class BigquerySchemaMigration
           },
         }.merge(hint)
         opts = {}
-        logger.debug { "insert_dataset(#{project}, #{body}, #{opts})" }
-        response = client.insert_dataset(project, body, opts)
+        logger.debug { "#{head}insert_dataset(#{project}, #{body}, #{opts})" }
+        unless dry_run?
+          response = client.insert_dataset(project, body, opts)
+        end
       rescue Google::Apis::ServerError, Google::Apis::ClientError, Google::Apis::AuthorizationError => e
         if e.status_code == 409 && /Already Exists:/ =~ e.message
           # ignore 'Already Exists' error
-          return
+          return {}
         end
 
         response = {status_code: e.status_code, message: e.message, error_class: e.class}
@@ -164,7 +170,7 @@ class BigquerySchemaMigration
       dataset ||= self.dataset
       table ||= self.table
       begin
-        logger.info { "Get table... #{project}:#{dataset}.#{table}" }
+        logger.debug { "Get table... #{project}:#{dataset}.#{table}" }
         response = client.get_table(project, dataset, table)
       rescue Google::Apis::ServerError, Google::Apis::ClientError, Google::Apis::AuthorizationError => e
         if e.status_code == 404 # not found
@@ -184,7 +190,7 @@ class BigquerySchemaMigration
       schema = Schema.new(columns)
 
       begin
-        logger.info { "Insert (create) table... #{project}:#{dataset}.#{table}" }
+        logger.info { "#{head}Insert (create) table... #{project}:#{dataset}.#{table}" }
         body = {
           table_reference: {
             table_id: table,
@@ -194,12 +200,14 @@ class BigquerySchemaMigration
           }
         }
         opts = {}
-        logger.debug { "insert_table(#{project}, #{dataset}, #{body}, #{opts})" }
-        response = client.insert_table(project, dataset, body, opts)
+        logger.debug { "#{head}insert_table(#{project}, #{dataset}, #{body}, #{opts})" }
+        unless dry_run?
+          response = client.insert_table(project, dataset, body, opts)
+        end
       rescue Google::Apis::ServerError, Google::Apis::ClientError, Google::Apis::AuthorizationError => e
         if e.status_code == 409 && /Already Exists:/ =~ e.message
           # ignore 'Already Exists' error
-          return
+          return {}
         end
 
         response = {status_code: e.status_code, message: e.message, error_class: e.class}
@@ -215,19 +223,22 @@ class BigquerySchemaMigration
       table ||= self.table
 
       begin
-        logger.info { "Delete (drop) table... #{project}:#{dataset}.#{table}" }
-        response = client.delete_table(project, dataset, table)
+        logger.info { "#{head}Delete (drop) table... #{project}:#{dataset}.#{table}" }
+        unless dry_run?
+          client.delete_table(project, dataset, table) # no response
+          success = true
+        end
       rescue Google::Apis::ServerError, Google::Apis::ClientError, Google::Apis::AuthorizationError => e
         if e.status_code == 404 && /Not found:/ =~ e.message
           # ignore 'Not Found' error
-          return
+          return {}
         end
 
         response = {status_code: e.status_code, message: e.message, error_class: e.class}
         raise Error, "Failed to delete_table(#{project}, #{dataset}, #{table}), response:#{response}"
       end
 
-      { responses: { delete_table: response } }
+      { success: success }
     end
     alias :drop_table :delete_table
 
@@ -305,11 +316,14 @@ class BigquerySchemaMigration
       table ||= self.table
 
       begin
+        logger.info { "#{head}insertAll tableData... #{project}:#{dataset}.#{table}" }
         body = {
           rows: rows.map {|row| { json: row } },
         }
         opts = {}
-        response = client.insert_all_table_data(project, dataset, table, body, opts)
+        unless dry_run?
+          response = client.insert_all_table_data(project, dataset, table, body, opts)
+        end
       rescue Google::Apis::ServerError, Google::Apis::ClientError, Google::Apis::AuthorizationError => e
         if e.status_code == 404 # not found
           raise NotFoundError, "Table #{project}:#{dataset}.#{table} is not found"
@@ -412,7 +426,7 @@ class BigquerySchemaMigration
       schema.validate_permitted_operations!(before_columns)
 
       begin
-        logger.info { "Patch table... #{project}:#{dataset}.#{table}" }
+        logger.info { "#{head}Patch table... #{project}:#{dataset}.#{table}" }
         fields = schema.map {|column| HashUtil.deep_symbolize_keys(column) }
         body = {
           schema: {
@@ -420,8 +434,10 @@ class BigquerySchemaMigration
           }
         }
         opts = {}
-        logger.debug { "patch_table(#{project}, #{dataset}, #{table}, #{body}, options: #{opts})" }
-        response = client.patch_table(project, dataset, table, body, options: opts)
+        logger.debug { "#{head}patch_table(#{project}, #{dataset}, #{table}, #{body}, options: #{opts})" }
+        unless dry_run?
+          response = client.patch_table(project, dataset, table, body, options: opts)
+        end
       rescue Google::Apis::ServerError, Google::Apis::ClientError, Google::Apis::AuthorizationError => e
         if e.status_code == 404 # not found
           raise NotFoundError, "Table #{project}:#{dataset}.#{table} is not found"
@@ -469,9 +485,11 @@ class BigquerySchemaMigration
       }
       opts = {}
 
-      logger.info  { "insert_job(#{project}, #{body}, #{opts})" }
-      response = client.insert_job(project, body, opts)
-      get_response = wait_load('copy', response)
+      logger.info  { "#{head}insert_job(#{project}, #{body}, #{opts})" }
+      unless dry_run?
+        response = client.insert_job(project, body, opts)
+        get_response = wait_load('copy', response)
+      end
 
       {
         responses: {
@@ -502,9 +520,11 @@ class BigquerySchemaMigration
       }
       opts = {}
 
-      logger.info { "insert_job(#{project}, #{body}, #{opts})" }
-      response = client.insert_job(project, body, opts)
-      get_response = wait_load('query', response)
+      logger.info { "#{head}insert_job(#{project}, #{body}, #{opts})" }
+      unless dry_run?
+        response = client.insert_job(project, body, opts)
+        get_response = wait_load('query', response)
+      end
 
       {
         responses: {
@@ -603,13 +623,15 @@ class BigquerySchemaMigration
       result.merge!({before_columns: before_columns, after_columns: after_columns})
     end
 
-    def migrate_table(table: nil, schema_file: nil, columns: nil)
+    def migrate_table(table: nil, schema_file: nil, columns: nil, backup_dataset: nil, backup_table: nil)
       table ||= self.table
+      backup_dataset ||= self.dataset
+
       if schema_file.nil? and columns.nil?
         raise ArgumentError, '`schema_file` or `columns` is required'
       end
       if schema_file
-        columns = JSON.parse(File.read(schema_file))
+        columns = HashUtil.deep_symbolize_keys(JSON.parse(File.read(schema_file)))
       end
       Schema.validate_columns!(columns)
 
@@ -623,7 +645,8 @@ class BigquerySchemaMigration
         drop_columns = Schema.diff_columns(columns, before_columns)
 
         if !drop_columns.empty?
-          drop_column(table: table, columns: columns)
+          drop_column(table: table, columns: columns,
+                      backup_dataset: backup_dataset, backup_table: backup_table)
         elsif !add_columns.empty?
           add_column(table: table, columns: columns)
         end

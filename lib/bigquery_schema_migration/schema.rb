@@ -8,7 +8,8 @@ class BigquerySchemaMigration
     ALLOWED_FIELD_MODES = Set.new(['NULLABLE', 'REQUIRED', 'REPEATED'])
 
     def initialize(columns = [])
-      super(self.class.normalize_columns(columns))
+      normalized = self.class.normalize_columns(columns)
+      super(normalized)
       validate_columns!
     end
 
@@ -75,22 +76,22 @@ class BigquerySchemaMigration
       # and must start with a letter or underscore. The maximum length is 128 characters.
       def validate_name!(name)
         unless name =~ /\A[a-zA-Z_]+\w*\Z/
-          raise ConfigError, "[BigQuery] `column.name` is invalid format. #{name}"
+          raise ConfigError, "Column name `#{name}` is invalid format"
         end
         unless name.length < 128
-          raise ConfigError, "[BigQuery] `column.name` must be less than 128. #{name}"
+          raise ConfigError, "Column name `#{name}` must be less than 128"
         end
       end
 
       def validate_type!(type)
         unless ALLOWED_FIELD_TYPES.include?(type)
-          raise ConfigError, "[BigQuery] `column.type` is not allowed type. #{type}"
+          raise ConfigError, "Column type `#{type}` is not allowed type"
         end
       end
 
       def validate_mode!(mode)
         unless ALLOWED_FIELD_MODES.include?(mode)
-          raise ConfigError, "[BigQuery] `column.mode` is not allowed mode. #{mode}"
+          raise ConfigError, "Column mode `#{mode}` is not allowed mode"
         end
       end
 
