@@ -3,11 +3,8 @@ require "bigquery_migration/error"
 require "bigquery_migration/schema"
 require "bigquery_migration/logger"
 require "bigquery_migration/bigquery_wrapper"
-require 'forwardable'
 
 class BigqueryMigration
-  extend Forwardable
-
   def self.logger
     @logger ||= Logger.new(STDOUT)
   end
@@ -20,25 +17,13 @@ class BigqueryMigration
     @wrapper = BigqueryWrapper.new(*args)
   end
 
-  def_delegators :@wrapper,
-    :client,
-    :existing_columns,
-    :get_dataset,
-    :insert_dataset,
-    :create_dataset, # alias
-    :get_table,
-    :insert_table,
-    :create_table, # alias
-    :delete_table,
-    :drop_table, # alias
-    :list_tables,
-    :purge_tables,
-    :insert_all_table_data,
-    :list_table_data,
-    :patch_table,
-    :add_column, # alias
-    :copy_table,
-    :insert_select,
-    :drop_column,
-    :migrate_table
+  # Delegate to BigqueryWrapper instance
+  BigqueryWrapper.instance_methods(false).each do |name|
+    next if method_defined?(name)
+    class_eval <<-"EOS", __FILE__, __LINE__ + 1
+      def #{name}(*args, &block)
+        @wrapper.#{name}(*args, &block)
+      end
+    EOS
+  end
 end
