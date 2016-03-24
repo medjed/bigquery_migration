@@ -365,7 +365,8 @@ class BigqueryMigration
     #     [
     #       [2,"two","child3","child4"],
     #       [1,"one","child1","child2"]
-    #     ]
+    #     ],
+    #   total_rows: 2
     # }
     def list_table_data(dataset: nil, table: nil, max_results: 100)
       dataset ||= self.dataset
@@ -389,7 +390,7 @@ class BigqueryMigration
         flattened_values = flatten_values(rows)
       end
 
-      { columns: flattened_columns, values: flattened_values }
+      { columns: flattened_columns, values: flattened_values, total_rows: response.total_rows }
     end
 
     private def flatten_values(rows)
