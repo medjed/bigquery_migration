@@ -7,7 +7,7 @@ else
   class BigqueryMigration
     class TestBigqueryWrapper < Test::Unit::TestCase
       def instance
-        @instance ||= BigqueryMigration.new(config)
+        @instance ||= BigqueryWrapper.new(config)
       end
 
       def config
@@ -67,7 +67,7 @@ else
         end
 
         def test_purge_tables_daily
-          stub(instance).list_tables { before_tables }
+          stub(instance).list_tables { { tables: before_tables } }
           result = instance.purge_tables(
             table_prefix: 'test_', suffix_format: '%Y%m%d', purge_before: '20160229'
           )
@@ -76,7 +76,7 @@ else
         end
 
         def test_purge_tables_hourly
-          stub(instance).list_tables { before_tables }
+          stub(instance).list_tables { { tables: before_tables } }
           result = instance.purge_tables(
             table_prefix: 'test_', suffix_format: '%Y%m%d_%H', purge_before: '20160229_23'
           )

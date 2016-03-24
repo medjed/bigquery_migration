@@ -275,7 +275,7 @@ class BigqueryMigration
       dataset ||= self.dataset
       timezone ||= Time.now.strftime('%z')
 
-      before_tables = list_tables
+      before_tables = list_tables[:tables]
 
       purge_before_t = TimeWithZone.strptime_with_zone(purge_before, suffix_format, timezone)
       tables = before_tables.select do |tbl|
