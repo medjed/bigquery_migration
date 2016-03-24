@@ -1,5 +1,5 @@
 bigquery: &bigquery
-  json_keyfile: your-project-000.json
+  json_keyfile: example/your-project-000.json
   dataset: your_dataset_name
   table: your_table_name
 

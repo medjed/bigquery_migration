@@ -2,7 +2,7 @@ require 'csv'
 require 'json'
 require_relative 'error'
 
-class BigquerySchemaMigration
+class BigqueryMigration
   class Schema < ::Array
     ALLOWED_FIELD_TYPES = Set.new(['STRING', 'INTEGER', 'FLOAT', 'BOOLEAN', 'RECORD', 'TIMESTAMP'])
     ALLOWED_FIELD_MODES = Set.new(['NULLABLE', 'REQUIRED', 'REPEATED'])

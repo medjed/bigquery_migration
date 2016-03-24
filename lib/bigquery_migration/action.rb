@@ -3,7 +3,7 @@ require_relative 'error'
 require_relative 'hash_util'
 require_relative 'bigquery_wrapper'
 
-class BigquerySchemaMigration
+class BigqueryMigration
   class Action
     attr_reader :config, :opts
 
@@ -43,7 +43,7 @@ class BigquerySchemaMigration
     end
 
     def client
-      @client ||= BigqueryWrapper.new(@config, @opts)
+      @client ||= BigqueryMigration.new(@config, @opts)
     end
 
     def create_dataset

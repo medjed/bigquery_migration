@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 
-require_relative '../lib/bigquery_schema_migration/cli'
-BigquerySchemaMigration::CLI.start(ARGV)
+require_relative '../lib/bigquery_migration/cli'
+BigqueryMigration::CLI.start(ARGV)

@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'bigquery_schema_migration/version'
+require 'bigquery_migration/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "bigquery_schema_migration"
-  spec.version       = BigquerySchemaMigration::VERSION
+  spec.name          = "bigquery_migration"
+  spec.version       = BigqueryMigration::VERSION
   spec.authors       = ["Naotoshi Seo"]
   spec.email         = ["sonots@gmail.com"]
 
   spec.summary       = %q{Migrate BigQuery table schema}
   spec.description   = %q{Migrate BigQuery table schema.}
-  spec.homepage      = "https://github.com/sonots/bigquery_schema_migration"
+  spec.homepage      = "https://github.com/sonots/bigquery_migration"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }

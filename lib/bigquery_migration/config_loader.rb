@@ -3,7 +3,7 @@ require 'yaml'
 require 'erb'
 require 'ostruct'
 
-class BigquerySchemaMigration
+class BigqueryMigration
   class ConfigLoader
     attr_reader :config_path, :namespace
 

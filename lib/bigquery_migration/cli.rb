@@ -1,10 +1,10 @@
 require 'thor'
 require 'json'
-require 'bigquery_schema_migration'
+require 'bigquery_migration'
 require_relative 'action_runner'
 require_relative 'hash_util'
 
-class BigquerySchemaMigration
+class BigqueryMigration
   class CLI < Thor
     # cf. http://qiita.com/KitaitiMakoto/items/c6b9d6311c20a3cc21f9
     def self.exit_on_failure?
@@ -37,7 +37,7 @@ class BigquerySchemaMigration
       :desc => 'Output result yaml to a file',
       :default => 'STDOUT'
 
-    desc 'run <config.yml>', 'run bq_migrate'
+    desc 'run <config.yml>', 'run bigquery_migration'
     def _run(config_path)
       opts = options.merge(
         dry_run: !options[:exec]
@@ -58,13 +58,13 @@ class BigquerySchemaMigration
     private
 
     def logger
-      BigquerySchemaMigration.logger
+      BigqueryMigration.logger
     end
 
     def init_logger
-      logger = BigquerySchemaMigration::Logger.new(options[:log])
+      logger = BigqueryMigration::Logger.new(options[:log])
       logger.level = options[:log_level]
-      BigquerySchemaMigration.logger = logger
+      BigqueryMigration.logger = logger
     end
 
     def reopen_stdout

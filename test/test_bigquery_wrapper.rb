@@ -1,19 +1,19 @@
 require_relative 'helper.rb'
-require 'bigquery_schema_migration/bigquery_wrapper'
+require 'bigquery_migration/bigquery_wrapper'
 
 unless File.exist?(JSON_KEYFILE)
   puts "#{JSON_KEYFILE} is not found. Skip test/test_bigquery_wrapper.rb"
 else
-  class BigquerySchemaMigration
+  class BigqueryMigration
     class TestBigqueryWrapper < Test::Unit::TestCase
       def instance
-        @instance ||= BigqueryWrapper.new(config)
+        @instance ||= BigqueryMigration.new(config)
       end
 
       def config
         {
           'json_keyfile' => JSON_KEYFILE,
-          'dataset'      => 'bigquery_schema_migration_unittest',
+          'dataset'      => 'bigquery_migration_unittest',
           'table'        => 'test',
         }
       end

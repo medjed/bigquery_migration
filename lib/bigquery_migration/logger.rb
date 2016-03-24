@@ -1,6 +1,6 @@
 require 'logger'
 
-class BigquerySchemaMigration
+class BigqueryMigration
   class LogFormatter
     FORMAT = "%s [%s] %s\n"
 

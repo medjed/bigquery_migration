@@ -3,7 +3,7 @@ require_relative 'error'
 require_relative 'action'
 require_relative 'hash_util'
 
-class BigquerySchemaMigration
+class BigqueryMigration
   class ActionRunner
     attr_reader :config, :config_path, :opts
 

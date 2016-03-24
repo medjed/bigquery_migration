@@ -7,12 +7,12 @@ require_relative 'hash_util'
 require 'google/apis/bigquery_v2'
 require 'google/api_client/auth/key_utils'
 
-class BigquerySchemaMigration
+class BigqueryMigration
   class BigqueryWrapper
     attr_reader :config
 
     def logger
-      BigquerySchemaMigration.logger
+      BigqueryMigration.logger
     end
 
     def initialize(config, opts = {})
@@ -363,8 +363,8 @@ class BigquerySchemaMigration
     #       },
     #   values:
     #     [
-    #       "2,two,child3,child4",
-    #       "1,one,child1,child2"
+    #       [2,"two","child3","child4"],
+    #       [1,"one","child1","child2"]
     #     ]
     # }
     def list_table_data(dataset: nil, table: nil, max_results: 100)
@@ -534,7 +534,7 @@ class BigquerySchemaMigration
       }
     end
 
-    def wait_load(kind, response)
+    private def wait_load(kind, response)
       started = Time.now
 
       wait_interval = self.job_status_polling_interval

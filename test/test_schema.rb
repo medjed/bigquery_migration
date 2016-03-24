@@ -1,7 +1,7 @@
 require_relative 'helper.rb'
-require 'bigquery_schema_migration/schema'
+require 'bigquery_migration/schema'
 
-class BigquerySchemaMigration
+class BigqueryMigration
   class TestSchema < Test::Unit::TestCase
     def columns
       [

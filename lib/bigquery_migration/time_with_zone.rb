@@ -1,6 +1,6 @@
 require 'tzinfo'
 
-class BigquerySchemaMigration
+class BigqueryMigration
   class TimeWithZone
     # [+-]HH:MM, [+-]HHMM, [+-]HH
     NUMERIC_PATTERN = %r{\A[+-]\d\d(:?\d\d)?\z}

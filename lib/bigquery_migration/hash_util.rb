@@ -1,4 +1,4 @@
-class BigquerySchemaMigration
+class BigqueryMigration
   class HashUtil
     def self.deep_symbolize_keys(hash)
       if hash.is_a?(Hash)

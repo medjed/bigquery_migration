@@ -1,15 +1,13 @@
-# Bigquery::MigrateTable
+# BigqueryMigration
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/bigquery_schema_migration`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+BigqueryMigraiton is a tool or a ruby library to migrate (or alter) BigQuery table schema.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'bigquery-migrate_table'
+gem 'bigquery_migration'
 ```
 
 And then execute:
@@ -18,24 +16,91 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install bigquery-migrate_table
+    $ gem install bigquery_migration
 
 ## Usage
 
-TODO: Write usage instructions here
+### CLI
+
+config.yml
+
+```yaml
+bigquery: &bigquery
+  json_keyfile: your-project-000.json
+  dataset: your_dataset_name
+  table: your_table_name
+
+actions:
+- action: create_dataset
+  <<: *bigquery
+- action: migrate_table
+  <<: *bigquery
+  columns:
+    - { name: 'timestamp', type: 'TIMESTAMP' }
+    - name: 'record'
+      type: 'RECORD'
+      fields:
+        - { name: 'string', type: 'STRING' }
+        - { name: 'integer', type: 'INTEGER' }
+```
+
+Run
+
+```
+$ bundle exec bq_migrate run config.yml # dry-run
+$ bundle exec bq_migrate run config.yml --exec
+```
+
+### Library
+
+```ruby
+require 'bigquery_migration'
+
+config = {
+  json_keyfile: '/path/to/your-project-000.json'
+  dataset: 'your_dataset_name'
+  table: 'your_table_name'
+}
+columns = [
+  { name: 'string', type: 'STRING' },
+  { name: 'record', type: 'RECORD', fields: [
+    { name: 'integer', type: 'INTEGER' },
+    { name: 'timestamp', type: 'TIMESTAMP' },
+  ] }
+]
+
+BigqueryMigration.new(config).migrate_table(columns: columns)
+# BigqueryMigration.new(config).migrate_table(schema_file: '/path/to/schema.json')
+```
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+### Run example:
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+Prepare `example/your-project-000.json`, then
+
+```
+$ bundle exec bq_migrate run example/example.yml # dry-run
+$ bundle exec bq_migrate run example/example.yml --exec
+```
+
+### Run test:
+
+```
+$ bundle exec rake test
+```
+
+To run tests which directly connects to BigQuery, prepare `example/your-project-000.json`, then
+
+````
+$ bundle exec rake test
+```
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/bigquery-migrate_table. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/sonots/bigquery_migration. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
