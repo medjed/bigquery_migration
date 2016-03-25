@@ -385,12 +385,21 @@ class BigqueryMigration
         raise Error, "Failed to list table_data #{project}:#{dataset}.#{table}, response:#{response}"
       end
 
-      flattened_columns = Schema.new(existing_columns).flattened_columns
+      flattened_columns = Schema.new(existing_columns).flattened_columns.map do |name, column|
+        {name: name}.merge!(column)
+      end
       if rows = response.to_h[:rows]
         flattened_values = flatten_values(rows)
       end
 
-      { columns: flattened_columns, values: flattened_values, total_rows: response.total_rows }
+      {
+        total_rows: response.total_rows,
+        columns: flattened_columns,
+        values: flattened_values,
+        response: {
+          list_table_data: response,
+        }
+      }
     end
 
     private def flatten_values(rows)
