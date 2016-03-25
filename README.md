@@ -69,8 +69,9 @@ columns = [
   ] }
 ]
 
-BigqueryMigration.new(config).migrate_table(columns: columns)
-# BigqueryMigration.new(config).migrate_table(schema_file: '/path/to/schema.json')
+migrator = BigqueryMigration.new(config)
+migrator.migrate_table(columns: columns)
+# migrator.migrate_table(schema_file: '/path/to/schema.json')
 ```
 
 ## Development
