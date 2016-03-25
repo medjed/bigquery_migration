@@ -18,6 +18,46 @@ else
         }
       end
 
+      sub_test_case "configure" do
+        def test_configure_json_keyfile
+          config = {
+            'json_keyfile' => JSON_KEYFILE,
+            'dataset'      => 'bigquery_migration_unittest',
+            'table'        => 'test',
+          }
+          assert_nothing_raised { instance.project }
+          assert_nothing_raised { instance.dataset }
+          assert_nothing_raised { instance.table }
+        end
+
+        def test_configure_json_keyfile_content_json
+          config = {
+            'json_keyfile' => {
+              'content' => File.read(JSON_KEYFILE),
+            },
+            'dataset'      => 'bigquery_migration_unittest',
+            'table'        => 'test',
+          }
+          assert_nothing_raised { instance.project }
+          assert_nothing_raised { instance.dataset }
+          assert_nothing_raised { instance.table }
+        end
+
+        def test_configure_json_keyfile_content_hash
+          config = {
+            'json_keyfile' => {
+              'content' => JSON.parse(File.read(JSON_KEYFILE)),
+            },
+            'dataset'      => 'bigquery_migration_unittest',
+            'table'        => 'test',
+          }
+          instance = BigqueryWrapper.new(config)
+          assert_nothing_raised { instance.project }
+          assert_nothing_raised { instance.dataset }
+          assert_nothing_raised { instance.table }
+        end
+      end
+
       def test_create_dataset
         assert_nothing_raised { instance.create_dataset }
         assert_nothing_raised { instance.get_dataset }
@@ -117,7 +157,7 @@ else
           30.times do
             break if result[:values]
             sleep 1
-            result = instance.list_table_data(dataset: 'medjed_bulk_test', table: 'Alpha')
+            result = instance.list_table_data
           end
 
           expected = {

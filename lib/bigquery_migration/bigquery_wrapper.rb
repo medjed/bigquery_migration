@@ -23,7 +23,7 @@ class BigqueryMigration
 
     def configure
       if json_keyfile = config[:json_keyfile]
-        config[:json_key] = 
+        json_key =
           case json_keyfile
           when String
             File.read(json_keyfile)
@@ -32,24 +32,21 @@ class BigqueryMigration
           else
             raise ConfigError.new "Unsupported json_keyfile type"
           end
-      else
-        config[:json_key] = {
-          project_id: config[:project_id],
-          service_email: config[:service_email],
-          private_key: config[:private_key],
-        }.to_json
+        json_keyparams =
+          begin
+            case json_key
+            when String
+              HashUtil.deep_symbolize_keys(JSON.parse(json_key))
+            when Hash
+              HashUtil.deep_symbolize_keys(json_key)
+            end
+          rescue => e
+            raise ConfigError.new "json_keyfile is not a JSON file"
+          end
       end
 
-      if config[:json_key]
-        begin
-          jsonkey_params = JSON.parse(config[:json_key])
-        rescue => e
-          raise ConfigError.new "json_keyfile is not a JSON file"
-        end
-      end
-
-      if jsonkey_params
-        config[:project] ||= jsonkey_params['project_id']
+      if json_keyparams
+        config[:project] ||= json_keyparams[:project_id]
       end
 
       config[:retries] ||= 5
