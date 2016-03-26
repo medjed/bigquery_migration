@@ -394,7 +394,7 @@ class BigqueryMigration
         total_rows: response.total_rows,
         columns: flattened_columns,
         values: flattened_values,
-        response: {
+        responses: {
           list_table_data: response,
         }
       }
