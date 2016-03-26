@@ -28,6 +28,7 @@ else
           assert_nothing_raised { instance.project }
           assert_nothing_raised { instance.dataset }
           assert_nothing_raised { instance.table }
+          assert_nothing_raised { instance.client }
         end
 
         def test_configure_json_keyfile_content_json
@@ -41,6 +42,7 @@ else
           assert_nothing_raised { instance.project }
           assert_nothing_raised { instance.dataset }
           assert_nothing_raised { instance.table }
+          assert_nothing_raised { instance.client }
         end
 
         def test_configure_json_keyfile_content_hash
@@ -55,6 +57,7 @@ else
           assert_nothing_raised { instance.project }
           assert_nothing_raised { instance.dataset }
           assert_nothing_raised { instance.table }
+          assert_nothing_raised { instance.client }
         end
       end
 

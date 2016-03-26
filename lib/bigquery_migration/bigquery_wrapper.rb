@@ -47,6 +47,7 @@ class BigqueryMigration
 
       if json_keyparams
         config[:project] ||= json_keyparams[:project_id]
+        config[:json_key] = json_keyparams.to_json
       end
 
       config[:retries] ||= 5
