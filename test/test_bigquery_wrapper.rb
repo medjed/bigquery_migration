@@ -146,6 +146,7 @@ else
             { 'name' => 'record', 'type' => 'RECORD', 'fields' => [
               { 'name' => 'child1', 'type' => 'STRING' },
             ] },
+            { 'name' => 'null', 'type' => 'STRING' },
           ])
 
           assert_nothing_raised do
@@ -157,7 +158,7 @@ else
 
           result = {}
           assert_nothing_raised { result = instance.list_table_data }
-          30.times do
+          60.times do
             break if result[:values]
             sleep 1
             result = instance.list_table_data
@@ -169,10 +170,11 @@ else
               { name: 'id', type: 'INTEGER', mode: 'NULLABLE' },
               { name: 'string', type: 'STRING', mode: 'REQUIRED' },
               { name: 'record.child1', type: 'STRING', mode: 'NULLABLE' },
+              { name: 'null', type: 'STRING', mode: 'NULLABLE' },
             ],
             values: [
-              ['1','foo','foo'],
-              ['2','bar','bar'],
+              ['2','bar','bar',nil],
+              ['1','foo','foo',nil],
             ]
           }
           assert { result[:columns] == expected[:columns] }

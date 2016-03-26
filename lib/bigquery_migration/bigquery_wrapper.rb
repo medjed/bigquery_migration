@@ -406,6 +406,8 @@ class BigqueryMigration
           r[:f].map do |f|
             if f[:v].respond_to?(:key?) && f[:v].key?(:f)
               flatten_values(f[:v][:f])
+            elsif f[:v].is_a?(Hash) && f[:v].empty? # nil is converted into {} by to_h
+              nil
             else
               f[:v]
             end
