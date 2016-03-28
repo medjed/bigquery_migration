@@ -107,6 +107,9 @@ class BigqueryMigration
       begin
         result = get_table
         response = result[:responses][:get_table]
+        return [] unless response
+        return [] unless response.schema
+        return [] unless response.schema.fields
         response.schema.fields.map {|column| column.to_h }
       rescue NotFoundError
         return []
