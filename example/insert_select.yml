@@ -1,0 +1,21 @@
+bigquery: &bigquery
+  json_keyfile: example/your-project-000.json
+  dataset: your_dataset_name
+  table: your_table_name
+
+actions:
+- action: create_dataset
+  <<: *bigquery
+- action: migrate_table
+  <<: *bigquery
+  columns:
+    - { name: 'timestamp', type: 'TIMESTAMP' }
+    - name: 'record'
+      type: 'RECORD'
+      fields:
+        - { name: 'string', type: 'STRING' }
+        - { name: 'integer', type: 'INTEGER' }
+- action: insert_select
+  <<: *bigquery
+  table: your_table_name_insert_select
+  query: select * from [your_dataset_name.your_table_name]

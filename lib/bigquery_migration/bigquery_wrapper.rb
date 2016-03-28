@@ -473,10 +473,11 @@ class BigqueryMigration
     end
     alias :add_column :patch_table
 
-    def copy_table(destination_table:, destination_dataset: nil, source_table: nil, source_dataset: nil, write_disposition: 'WRITE_TRUNCATE')
+    def copy_table(destination_table:, destination_dataset: nil, source_table: nil, source_dataset: nil, write_disposition: nil)
       source_table ||= self.table
       source_dataset ||= self.dataset
       destination_dataset ||= source_dataset
+      write_disposition ||= 'WRITE_TRUNCATE'
 
       body = {
         configuration: {
@@ -512,9 +513,10 @@ class BigqueryMigration
       }
     end
 
-    def insert_select(query:, destination_table: nil, destination_dataset: nil, write_disposition: 'WRITE_TRUNCATE')
+    def insert_select(query:, destination_table: nil, destination_dataset: nil, write_disposition: nil)
       destination_table   ||= self.table
       destination_dataset ||= self.dataset
+      write_disposition ||= 'WRITE_TRUNCATE'
 
       body  = {
         configuration: {
