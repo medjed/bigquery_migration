@@ -15,7 +15,6 @@ actions:
       fields:
         - { name: 'string', type: 'STRING' }
         - { name: 'integer', type: 'INTEGER' }
-- action: insert_select
+- action: copy_table
   <<: *bigquery
-  destination_table: your_table_name_insert_select
-  query: select * from [your_dataset_name.your_table_name]
+  destination_table: your_table_name_copy
