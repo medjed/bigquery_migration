@@ -39,6 +39,7 @@ class BigqueryMigration
         migrate_table
         insert
         preview
+        insert_select
       ])
     end
 
@@ -80,6 +81,15 @@ class BigqueryMigration
 
     def preview
       client.list_table_data(max_results: config[:max_results])
+    end
+
+    def insert_select
+      client.insert_select(
+        query: config[:query],
+        destination_table: config[:destination_table],
+        destination_dataset: config[:destination_dataset],
+        write_disposition: config[:write_disposition],
+      )
     end
   end
 end
