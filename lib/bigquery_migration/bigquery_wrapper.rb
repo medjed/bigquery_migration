@@ -671,7 +671,7 @@ class BigqueryMigration
 
       if after_columns.empty? and !dry_run?
         raise Error, "after_columns is empty. " \
-          "before_columns: #{before_columns}, after_columns: after_columns, columns: #{columns}"
+          "before_columns: #{before_columns}, after_columns: #{after_columns}, columns: #{columns}"
       end
 
       result.merge!( before_columns: before_columns, after_columns: after_columns )
