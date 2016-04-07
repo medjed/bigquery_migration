@@ -63,7 +63,7 @@ class BigqueryMigration
     def patch_table
       client.patch_table(
         columns: config[:columns],
-        add_columnss: config[:add_columnss]
+        add_columns: config[:add_columns]
       )
     end
 
