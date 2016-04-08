@@ -20,7 +20,7 @@ Or install it yourself as:
 
 ## Usage
 
-Define your desired schema, this tool automatically detects differences with the target table, and takes core of adding columns, or dropping columns (actually, select & copy is issued), or changing types.
+Define your desired schema, this tool automatically detects differences with the target table, and takes care of adding columns, or dropping columns (actually, select & copy is issued), or changing types.
 
 ### CLI
 
