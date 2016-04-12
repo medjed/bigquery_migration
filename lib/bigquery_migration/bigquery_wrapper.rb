@@ -549,7 +549,7 @@ class BigqueryMigration
       }
     end
 
-    private def wait_load(kind, response)
+    def wait_load(kind, response)
       started = Time.now
 
       wait_interval = self.job_status_polling_interval
