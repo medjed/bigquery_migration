@@ -6,6 +6,7 @@ require_relative 'time_with_zone'
 require_relative 'hash_util'
 require 'google/apis/bigquery_v2'
 require 'google/api_client/auth/key_utils'
+require 'securerandom'
 
 class BigqueryMigration
   class BigqueryWrapper
@@ -480,6 +481,10 @@ class BigqueryMigration
       write_disposition ||= 'WRITE_TRUNCATE'
 
       body = {
+        job_reference: {
+          project_id: self.project,
+          job_id: "job_#{SecureRandom.uuid}",
+        },
         configuration: {
           copy: {
             create_deposition: 'CREATE_IF_NEEDED',
@@ -519,6 +524,10 @@ class BigqueryMigration
       write_disposition ||= 'WRITE_TRUNCATE'
 
       body  = {
+        job_reference: {
+          project_id: self.project,
+          job_id: "job_#{SecureRandom.uuid}",
+        },
         configuration: {
           query: {
             allow_large_results: true,
