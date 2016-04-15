@@ -182,8 +182,20 @@ class BigqueryMigration
         response = {status_code: e.status_code, message: e.message, error_class: e.class}
         raise Error, "Failed to get_table(#{project}, #{dataset}, #{table}), response:#{response}"
       end
-     
-      { responses: { get_table: response } }
+
+      result = {}
+      if response
+        result = {
+          table_id: response.id,
+          creation_time: response.creation_time.to_i, # millisec
+          last_modified_time: response.last_modified_time.to_i, # millisec
+          location: response.location,
+          num_bytes: response.num_bytes.to_i,
+          num_rows: response.num_rows.to_i,
+        }
+      end
+
+      result.merge!({ responses: { get_table: response } })
     end
 
     def insert_table(dataset: nil, table: nil, columns: )

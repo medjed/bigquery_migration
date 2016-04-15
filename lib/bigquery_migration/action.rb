@@ -41,6 +41,7 @@ class BigqueryMigration
         preview
         insert_select
         copy_table
+        table_info
       ])
     end
 
@@ -101,6 +102,24 @@ class BigqueryMigration
         destination_dataset: config[:destination_dataset],
         write_disposition: config[:write_disposition],
       )
+    end
+
+    def table_info
+      if config[:prefix]
+        tables = client.list_tables[:tables].select {|table| table.start_with?(config[:prefix]) }
+        table_infos = tables.map do |table|
+          result = client.get_table(table: table)
+          result.delete(:responses)
+          result
+        end
+        result = {
+          sum_num_bytes: table_infos.map {|info| info[:num_bytes].to_i }.inject(:+),
+          sum_num_rows: table_infos.map {|info| info[:num_rows].to_i }.inject(:+),
+          table_infos: table_infos,
+        }
+      else
+        client.get_table
+      end
     end
   end
 end
