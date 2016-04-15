@@ -274,7 +274,7 @@ class BigqueryMigration
         end
       rescue Google::Apis::ServerError, Google::Apis::ClientError, Google::Apis::AuthorizationError => e
         if e.status_code == 404 && /Not found:/ =~ e.message
-          railse NotFoundError, "Dataset #{project}:#{dataset} is not found"
+          raise NotFoundError, "Dataset #{project}:#{dataset} is not found"
         end
 
         response = {status_code: e.status_code, message: e.message, error_class: e.class}
