@@ -76,6 +76,10 @@ migrator.migrate_table(columns: columns)
 # migrator.migrate_table(schema_file: '/path/to/schema.json')
 ```
 
+## Further Details
+
+* See [BigQueryテーブルのスキーマを変更する - sonots:blog](http://blog.livedoor.jp/sonots/archives/47294596.html) (Japanese)
+
 ## Development
 
 ### Run example:
