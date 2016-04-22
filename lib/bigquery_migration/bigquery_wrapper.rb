@@ -584,18 +584,18 @@ class BigqueryMigration
         if status == "DONE"
           logger.info {
             "#{kind} job completed... " \
-            "job id:[#{job_id}] elapsed_time:#{elapsed.to_f}sec status:[#{status}]"
+            "job_id:[#{job_id}] elapsed_time:#{elapsed.to_f}sec status:[#{status}]"
           }
           break
         elsif elapsed.to_i > max_polling_time
-          message = "Checking #{kind} job status... " \
-            "job id:[#{job_id}] elapsed_time:#{elapsed.to_f}sec status:[TIMEOUT]"
+          message = "#{kind} job checking... " \
+            "job_id:[#{job_id}] elapsed_time:#{elapsed.to_f}sec status:[TIMEOUT]"
           logger.info { message }
           raise JobTimeoutError.new(message)
         else
           logger.info {
-            "Checking #{kind} job status... " \
-            "job id:[#{job_id}] elapsed_time:#{elapsed.to_f}sec status:[#{status}]"
+            "#{kind} job checking... " \
+            "job_id:[#{job_id}] elapsed_time:#{elapsed.to_f}sec status:[#{status}]"
           }
           sleep wait_interval
           _response = client.get_job(project, job_id)
