@@ -15,6 +15,7 @@ actions:
       fields:
         - { name: 'string', type: 'STRING' }
         - { name: 'integer', type: 'INTEGER' }
+        - { name: 'bytes', type: 'BYTES' }
 - action: migrate_table
   <<: *bigquery
   schema_file: example/schema.json

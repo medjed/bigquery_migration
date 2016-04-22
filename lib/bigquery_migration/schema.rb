@@ -4,7 +4,7 @@ require_relative 'error'
 
 class BigqueryMigration
   class Schema < ::Array
-    ALLOWED_FIELD_TYPES = Set.new(['STRING', 'INTEGER', 'FLOAT', 'BOOLEAN', 'RECORD', 'TIMESTAMP'])
+    ALLOWED_FIELD_TYPES = Set.new(['STRING', 'INTEGER', 'FLOAT', 'BOOLEAN', 'RECORD', 'TIMESTAMP', 'BYTES'])
     ALLOWED_FIELD_MODES = Set.new(['NULLABLE', 'REQUIRED', 'REPEATED'])
 
     def initialize(columns = [])
