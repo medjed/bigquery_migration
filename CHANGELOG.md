@@ -1,3 +1,10 @@
+# 0.1.3 (2016/04/22)
+
+Enhancements:
+
+* Support new BYTES types
+* Add exe/bq-migrate as an alias to exe/bq_migrate
+
 # 0.1.2 (2016/04/14)
 
 Changes:
