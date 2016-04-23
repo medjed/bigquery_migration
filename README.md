@@ -76,7 +76,7 @@ migrator.migrate_table(columns: columns)
 # migrator.migrate_table(schema_file: '/path/to/schema.json')
 ```
 
-## LIMITATTIONS
+## LIMITATIONS
 
 There are serveral limitations because of BigQuery API limitations:
 
