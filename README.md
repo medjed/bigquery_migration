@@ -76,6 +76,17 @@ migrator.migrate_table(columns: columns)
 # migrator.migrate_table(schema_file: '/path/to/schema.json')
 ```
 
+## LIMITATTIONS
+
+There are serveral limitations because of BigQuery API limitations:
+
+* Can not handle `mode: REPEATED` columns
+* Can add only `mode: NULLABLE` columns
+* Columns become `mode: NULLABLE` after type chinging
+* Charged (If only adding columns, it is not charged because it uses patch_table API)
+
+If this limitations are not acceptable for you, I do recommend to re-bulkload data entirely to change table schema (although it takes much of time).
+
 ## Further Details
 
 * See [BigQueryテーブルのスキーマを変更する - sonots:blog](http://blog.livedoor.jp/sonots/archives/47294596.html) (Japanese)
