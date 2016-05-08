@@ -82,10 +82,10 @@ There are serveral limitations because of BigQuery API limitations:
 
 * Can not handle `mode: REPEATED` columns
 * Can add only `mode: NULLABLE` columns
-* Columns become `mode: NULLABLE` after type chinging
-* Charged (If only adding columns, it is not charged because it uses patch_table API)
+* Columns become `mode: NULLABLE` after type changing
+* Will be charged because a query is issued (If only adding columns, it is not charged because it uses patch_table API)
 
-If this limitations are not acceptable for you, I do recommend to re-bulkload data entirely to change table schema (although it takes much of time).
+This tool has an advantage that it is **fast** than reloading data entirely.
 
 ## Further Details
 
