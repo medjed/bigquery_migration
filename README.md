@@ -85,7 +85,7 @@ There are serveral limitations because of BigQuery API limitations:
 * Columns become `mode: NULLABLE` after type changing
 * Will be charged because a query is issued (If only adding columns, it is not charged because it uses patch_table API)
 
-This tool has an advantage that it is **fast** than reloading data entirely.
+This tool has an advantage that it is **faster** than reloading data entirely.
 
 ## Further Details
 
