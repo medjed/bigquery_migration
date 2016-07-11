@@ -106,6 +106,9 @@ else
             test_20160229_23
             test_20160229_22
             test_20160228
+            test_23_20160229
+            test_22_20160229
+            test_00_20160301
           ]
         end
 
@@ -118,12 +121,21 @@ else
           assert { result[:delete_tables] == expected }
         end
 
-        def test_purge_tables_hourly
+        def test_purge_tables_hourly_1
           stub(instance).list_tables { { tables: before_tables } }
           result = instance.purge_tables(
             table_prefix: 'test_', suffix_format: '%Y%m%d_%H', purge_before: '20160229_23'
           )
           expected = %w[test_20160229_23 test_20160229_22]
+          assert { result[:delete_tables] == expected }
+        end
+
+        def test_purge_tables_hourly_2
+          stub(instance).list_tables { { tables: before_tables } }
+          result = instance.purge_tables(
+            table_prefix: 'test_', suffix_format: '%H_%Y%m%d', purge_before: '23_20160229'
+          )
+          expected = %w[test_23_20160229 test_22_20160229]
           assert { result[:delete_tables] == expected }
         end
       end
