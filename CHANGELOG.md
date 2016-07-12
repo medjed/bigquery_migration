@@ -1,3 +1,9 @@
+# 0.1.4 (2016/07/12)
+
+Fixes:
+
+* Fix to allow downcase type and mode
+
 # 0.1.3 (2016/04/22)
 
 Enhancements:
