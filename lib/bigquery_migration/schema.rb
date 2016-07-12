@@ -84,13 +84,13 @@ class BigqueryMigration
       end
 
       def validate_type!(type)
-        unless ALLOWED_FIELD_TYPES.include?(type)
+        unless ALLOWED_FIELD_TYPES.include?(type.upcase)
           raise ConfigError, "Column type `#{type}` is not allowed type"
         end
       end
 
       def validate_mode!(mode)
-        unless ALLOWED_FIELD_MODES.include?(mode)
+        unless ALLOWED_FIELD_MODES.include?(mode.upcase)
           raise ConfigError, "Column mode `#{mode}` is not allowed mode"
         end
       end

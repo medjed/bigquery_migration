@@ -30,6 +30,21 @@ class BigqueryMigration
       def test_validate_columns_with_valid
         assert_nothing_raised { Schema.new(columns).validate_columns! }
         assert_nothing_raised { Schema.validate_columns!(columns) }
+
+        no_mode = [{name: 'name', type: 'STRING'}]
+        assert_nothing_raised { Schema.validate_columns!(no_mode) }
+
+        downcase_type = [{name: 'name', type: 'string'}]
+        assert_nothing_raised { Schema.validate_columns!(downcase_type) }
+
+        upcase_type = [{name: 'name', type: 'STRING'}]
+        assert_nothing_raised { Schema.validate_columns!(upcase_type) }
+
+        downcase_mode = [{name: 'name', type: 'STRING', mode: 'nullable'}]
+        assert_nothing_raised { Schema.validate_columns!(downcase_mode) }
+
+        upcase_mode = [{name: 'name', type: 'STRING', mode: 'NULLABLE'}]
+        assert_nothing_raised { Schema.validate_columns!(upcase_mode) }
       end
 
       def test_validate_columns_with_invalid
@@ -48,14 +63,8 @@ class BigqueryMigration
         invalid_type = [{name: 'name', type: 'foobar'}]
         assert_raise { Schema.validate_columns!(invalid_type) }
 
-        no_mode = [{name: 'name', type: 'STRING'}]
-        assert_nothing_raised { Schema.validate_columns!(no_mode) }
-
-        no_mode = [{name: 'name', type: 'STRING'}]
-        assert_nothing_raised { Schema.validate_columns!(no_mode) }
-
         invalid_mode = [{name: 'name', type: 'STRING', mode: 'foobar'}]
-        assert_nothing_raised { Schema.validate_columns!(no_mode) }
+        assert_raise { Schema.validate_columns!(no_mode) }
       end
     end
 
