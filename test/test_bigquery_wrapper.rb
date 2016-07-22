@@ -153,18 +153,75 @@ else
 =begin
         def test_insert_all_and_list_table_data
           instance.create_table(columns: [
-            { 'name' => 'id', 'type' => 'INTEGER' },
-            { 'name' => 'string', 'type' => 'STRING', 'mode' => 'REQUIRED' },
-            { 'name' => 'record', 'type' => 'RECORD', 'fields' => [
-              { 'name' => 'child1', 'type' => 'STRING' },
+            { 'name' => 'repeated_record', 'type' => 'RECORD', 'mode' => 'REPEATED', 'fields' => [
+              { 'name' => 'record', 'type' => 'RECORD', 'mode' => 'NULLABLE', 'fields' => [
+                { 'name' => 'child', 'type' => 'STRING', 'mode' => 'NULLABLE' },
+                { 'name' => 'repeated_time', 'type' => 'TIMESTAMP', 'mode' => 'REPEATED' }
+              ] },
+              { 'name' => 'repeated_time', 'type' => 'TIMESTAMP', 'mode' => 'REPEATED' }
             ] },
-            { 'name' => 'null', 'type' => 'STRING' },
+            { 'name' => 'repeated_string', 'type' => 'STRING', 'mode' => 'REPEATED' },
+            { 'name' => 'repeated_int', 'type' => 'INTEGER', 'mode' => 'REPEATED' },
+            { 'name' => 'repeated_record2', 'type' => 'RECORD', 'mode' => 'REPEATED', 'fields' => [
+              { 'name' => 'record2', 'type' => 'RECORD', 'mode' => 'NULLABLE', 'fields' => [
+                { 'name' => 'repeated_float', 'type' => 'FLOAT', 'mode' => 'REPEATED' },
+                { 'name' => 'child2', 'type' => 'STRING', 'mode' => 'REQUIRED' }
+              ] }
+            ] }
           ])
 
           assert_nothing_raised do
             instance.insert_all_table_data(rows: [
-              {'id' => 1, 'string' => 'foo', 'record' => { 'child1' => 'foo' }},
-              {'id' => 2, 'string' => 'bar', 'record' => { 'child1' => 'bar' }},
+              { 'repeated_record' => [
+                { 'record' =>
+                  { 'child' => 'hoge',
+                    'repeated_time' => [
+                      '2015-10-08 00:00:00 +09:00',
+                      '2015-10-09 00:00:00 +09:00'
+                    ]
+                  },
+                  'repeated_time' => [
+                    '2015-10-10 00:00:00 +09:00',
+                    '2015-10-10 00:00:00 +09:00'
+                  ] },
+                { 'record' =>
+                  { 'child' => 'fuga'},
+                  'repeated_time' => [
+                    '2015-10-12 00:00:00 +09:00',
+                    '2015-10-13 00:00:00 +09:00'
+                  ]
+                }
+              ],
+              'repeated_string' => [
+                'one',
+                'two',
+                'three'
+              ],
+              'repeated_int' => [
+                1,
+                2,
+              ],
+              'repeated_record2' => [
+                { 'record2' =>
+                  { 'child2' => 'hoge2',
+                    'repeated_float' => [
+                      1.1,
+                      2.2,
+                      3.3
+                    ]
+                  }
+                },
+                { 'record2' =>
+                  { 'child2' => 'fuga2',
+                    'repeated_float' => [
+                      4.4,
+                      5.5,
+                      6.6,
+                      7.7
+                    ]
+                  }
+                }
+              ] },
             ])
           end
 
@@ -177,17 +234,27 @@ else
           end
 
           expected = {
-            total_rows: 2,
+            total_rows: 4,
             columns: [
-              { name: 'id', type: 'INTEGER', mode: 'NULLABLE' },
-              { name: 'string', type: 'STRING', mode: 'REQUIRED' },
-              { name: 'record.child1', type: 'STRING', mode: 'NULLABLE' },
-              { name: 'null', type: 'STRING', mode: 'NULLABLE' },
+              { name: 'repeated_record.record.child', type: 'STRING', mode: 'NULLABLE' },
+              { name: 'repeated_record.record.repeated_time', type: 'TIMESTAMP', mode: 'REPEATED' },
+              { name: 'repeated_record.repeated_time', type: 'TIMESTAMP', mode: 'REPEATED' },
+              { name: 'repeated_string', type: 'STRING', mode: 'REPEATED' },
+              { name: 'repeated_int', type: 'INTEGER', mode: 'REPEATED' },
+              { name: 'repeated_record2.record2.repeated_float', type: 'FLOAT', mode: 'REPEATED' },
+              { name: 'repeated_record2.record2.child2', type: 'STRING', mode: 'REQUIRED' },
             ],
             values: [
-              ['2','bar','bar',nil],
-              ['1','foo','foo',nil],
+              [
+                ["hoge", "1.44423E9", "1.4444028E9", "one", "1", "1.1", "hoge2"],
+                [nil, "1.4443164E9", "1.4444028E9", "two", "2", "2.2", nil],
+                ["fuga", nil, "1.4445756E9", "three", nil, "3.3", nil],
+                [nil, nil, "1.444662E9", nil, nil, "4.4", "fuga2"],
+                [nil, nil, nil, nil, nil, "5.5", nil],
+                [nil, nil, nil, nil, nil, "6.6", nil],
+                [nil, nil, nil, nil, nil, "7.7", nil]
             ]
+          ]
           }
           assert { result[:columns] == expected[:columns] }
           assert { result[:values] == expected[:values] }
@@ -323,7 +390,7 @@ else
               { name: 'remained_column', type: 'STRING' },
             ] }
           ]
-          
+
           result = instance.drop_column(drop_columns: drop_columns)
           after_columns = result[:after_columns]
 
@@ -350,7 +417,7 @@ else
             { name: 'add_column', type: 'STRING' },
           ]
           expected = columns.dup
-          
+
           result = instance.drop_column(columns: columns)
           after_columns = result[:after_columns]
 

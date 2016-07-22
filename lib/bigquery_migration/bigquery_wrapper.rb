@@ -1,6 +1,7 @@
 require 'csv'
 require 'json'
 require_relative 'schema'
+require_relative 'table_data'
 require_relative 'error'
 require_relative 'time_with_zone'
 require_relative 'hash_util'
@@ -399,45 +400,28 @@ class BigqueryMigration
         raise Error, "Failed to list table_data #{project}:#{dataset}.#{table}, response:#{response}"
       end
 
-      flattened_columns = Schema.new(existing_columns).flattened_columns.map do |name, column|
+      columns = existing_columns
+      flattened_columns = Schema.new(columns).flattened_columns.map do |name, column|
         {name: name}.merge!(column)
       end
       if rows = response.to_h[:rows]
-        flattened_values = flatten_values(rows)
+        table_rows = TableData.new(columns, rows).generate_table_rows
       end
 
       {
         total_rows: response.total_rows,
         columns: flattened_columns,
-        values: flattened_values,
+        values: table_rows,
         responses: {
           list_table_data: response,
         }
       }
     end
 
-    private def flatten_values(rows)
-      rows.map do |r|
-        if r.key?(:f)
-          r[:f].map do |f|
-            if f[:v].respond_to?(:key?) && f[:v].key?(:f)
-              flatten_values(f[:v][:f])
-            elsif f[:v].is_a?(Hash) && f[:v].empty? # nil is converted into {} by to_h
-              nil
-            else
-              f[:v]
-            end
-          end.flatten
-        else
-          r[:v]
-        end
-      end
-    end
-
     def patch_table(dataset: nil, table: nil, columns: nil, add_columns: nil)
       dataset ||= self.dataset
       table ||= self.table
-      
+
       if columns.nil? and add_columns.nil?
         raise ArgumentError, 'patch_table: `columns` or `add_columns` is required'
       end
