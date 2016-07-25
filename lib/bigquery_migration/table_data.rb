@@ -15,14 +15,14 @@ class BigqueryMigration
       @rows = rows || raise(ConfigError, '`rows` is required.')
     end
 
-    def generate_table_rows
+    def generate_values
       rows = @rows.map do |row|
-        table_rows = []
+        values = []
         max_repeated_count = calculate_repeated_count(columns: @columns, rows: row).max
         max_repeated_count.times do |count|
-          table_rows.push(generate_table_row(columns: @columns, rows: row, count: count))
+          values.push(generate_value(columns: @columns, rows: row, count: count))
         end
-        table_rows
+        values
       end
       # For backword compatibility
       max_row_count = (rows.map(&:length) || []).max
@@ -61,10 +61,10 @@ class BigqueryMigration
 
     # This method called recursively.
     # So, rows must be a hash and hash has key f:.
-    private def generate_table_row(columns: nil, rows: nil, count: nil)
-      logger.info { "generate_table_row(columns: #{columns}, rows: #{rows}, count: #{count})" }
-      table_row = []
-      return table_row if rows.nil?
+    private def generate_value(columns: nil, rows: nil, count: nil)
+      logger.info { "generate_value(columns: #{columns}, rows: #{rows}, count: #{count})" }
+      value = []
+      return value if rows.nil?
       rows[:f].zip(columns).each do |row, column|
         if column[:type] == 'RECORD'
           if column[:mode] == 'REPEATED'
@@ -74,33 +74,33 @@ class BigqueryMigration
             row[:v].each do |v|
               repeated_count = v[:repeated_count]
               if current <= count && count < (current + repeated_count)
-                generated_table_rows = generate_table_row(columns: column[:fields], rows: v[:v], count: count - current)
-                table_row.concat(generated_table_rows)
+                generated_values = generate_value(columns: column[:fields], rows: v[:v], count: count - current)
+                value.concat(generated_values)
                 recursive = true
               end
               current = current + repeated_count
             end
             unless recursive
               nil_count = generate_nil_count(column[:fields])
-              table_row.concat(Array.new(nil_count))
+              value.concat(Array.new(nil_count))
             end
           elsif row[:v].nil?
             nil_count = generate_nil_count(column[:fields])
-            table_row.concat(Array.new(nil_count))
+            value.concat(Array.new(nil_count))
           else
-            generated_table_rows = generate_table_row(columns: column[:fields], rows: row[:v], count: count)
-            table_row.concat(generated_table_rows)
+            generated_values = generate_value(columns: column[:fields], rows: row[:v], count: count)
+            value.concat(generated_values)
           end
         elsif column[:mode] == 'REPEATED'
           v = row[:v]
-          count < v.length ? table_row.push(v[count][:v]) : table_row.push(nil)
+          count < v.length ? value.push(v[count][:v]) : value.push(nil)
         elsif count == 0
-          table_row.push(row[:v])
+          value.push(row[:v])
         else
-          table_row.push(nil)
+          value.push(nil)
         end
       end
-      table_row
+      value
     end
 
     private def generate_nil_count(fields)

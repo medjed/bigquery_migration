@@ -405,13 +405,13 @@ class BigqueryMigration
         {name: name}.merge!(column)
       end
       if rows = response.to_h[:rows]
-        table_rows = TableData.new(columns, rows).generate_table_rows
+        values = TableData.new(columns, rows).generate_values
       end
 
       {
         total_rows: response.total_rows,
         columns: flattened_columns,
-        values: table_rows,
+        values: values,
         responses: {
           list_table_data: response,
         }
