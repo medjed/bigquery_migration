@@ -1,3 +1,9 @@
+# 0.1.5 (2016/07/25)
+
+Enhancements:
+
+* Support record type and repeated mode for list table data
+
 # 0.1.4 (2016/07/12)
 
 Fixes:
@@ -26,4 +32,3 @@ Changes:
 # 0.1.0 (2016/04/08)
 
 Initial release
-
