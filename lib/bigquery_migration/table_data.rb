@@ -34,6 +34,7 @@ class BigqueryMigration
     private def calculate_repeated_count(columns: nil, rows: nil)
       logger.info { "calculate_repeated_count(columns: #{columns}, rows: #{rows})" }
       return [1] if rows.nil?
+      validate_rows!(rows)
       rows[:f].zip(columns).map do |row, column|
         if column[:type] == 'RECORD'
           if column[:mode] == 'REPEATED'
@@ -65,6 +66,7 @@ class BigqueryMigration
       logger.info { "generate_value(columns: #{columns}, rows: #{rows}, count: #{count})" }
       value = []
       return value if rows.nil?
+      validate_rows!(rows)
       rows[:f].zip(columns).each do |row, column|
         if column[:type] == 'RECORD'
           if column[:mode] == 'REPEATED'
@@ -107,6 +109,10 @@ class BigqueryMigration
       fields.inject(0) do |acc, f|
         f[:type] == 'RECORD' ? acc + generate_nil_count(f[:fields]) : acc + 1
       end
+    end
+
+    private def validate_rows!(rows)
+      raise ConfigError, '`rows` must be a hash and hash has key `:f`.' if !rows.is_a?(Hash) || !rows.has_key?(:f)
     end
   end
 end
