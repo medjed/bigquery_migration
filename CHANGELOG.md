@@ -1,3 +1,9 @@
+# 0.1.6 (2016/07/26)
+
+Fixes:
+
+* Fix empty hash to nil
+
 # 0.1.5 (2016/07/25)
 
 Enhancements:
