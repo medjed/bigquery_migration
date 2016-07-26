@@ -95,14 +95,20 @@ class BigqueryMigration
           end
         elsif column[:mode] == 'REPEATED'
           v = row[:v]
-          count < v.length ? value.push(v[count][:v]) : value.push(nil)
+          count < v.length ? value.push(normalize_value(v[count][:v])) : value.push(nil)
         elsif count == 0
-          value.push(row[:v])
+          value.push((normalize_value(row[:v])))
         else
           value.push(nil)
         end
       end
       value
+    end
+
+    # special treatment empty hash.
+    # nil is converted into {} by to_h
+    private def normalize_value(v)
+      v.is_a?(Hash) && v.empty? ? nil : v
     end
 
     private def generate_nil_count(fields)

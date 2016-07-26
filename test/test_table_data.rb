@@ -38,6 +38,32 @@ class BigqueryMigration
         assert { TableData.new(columns, rows).generate_values == expected }
       end
 
+      def test_generate_values_with_empty_hash
+        columns = [
+          {name: "category", type: "STRING"},
+          {name: "number", type: "INTEGER"},
+          {name: "null_string", type: "STRING"},
+          {name: "d", type: "STRING"},
+          {name: "t", type: "TIMESTAMP"}
+        ]
+
+        rows = [
+          { f: [
+            {v: "dummyEventCategory03"},
+            {v: "5678"},
+            {v: {}},
+            {v: "2016-07-25"},
+            {v: "1.4693724E9"}
+          ] }
+        ]
+
+        expected = [
+          [ "dummyEventCategory03", "5678", nil, "2016-07-25", "1.4693724E9" ],
+        ]
+
+        assert { TableData.new(columns, rows).generate_values == expected }
+      end
+
       def test_generate_values_repeated_and_record_simple
         columns = [
           { name: 'repeated_record', type: 'RECORD', mode: 'REPEATED', fields: [
