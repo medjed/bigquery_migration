@@ -1,3 +1,13 @@
+# 0.1.7 (2016/09/16)
+
+Fixes:
+
+* migrate_table should create table only if a table does not exist
+
+Enhancements:
+
+* create_table should not create a table with empty columns
+
 # 0.1.6 (2016/07/26)
 
 Fixes:
