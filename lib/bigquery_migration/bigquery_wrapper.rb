@@ -202,6 +202,7 @@ class BigqueryMigration
     def insert_table(dataset: nil, table: nil, columns: )
       dataset ||= self.dataset
       table ||= self.table
+      raise Error, "columns is empty" if columns.empty?
       schema = Schema.new(columns)
 
       begin
