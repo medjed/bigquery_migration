@@ -656,12 +656,14 @@ class BigqueryMigration
       end
       Schema.validate_columns!(columns)
 
-      before_columns = existing_columns
-
       result = {}
-      if before_columns.empty?
+      begin
+        get_table
+      rescue NotFoundError
+        before_columns = []
         result = create_table(table: table, columns: columns)
       else
+        before_columns = existing_columns
         add_columns  = Schema.diff_columns(before_columns, columns)
         drop_columns = Schema.diff_columns(columns, before_columns)
 
