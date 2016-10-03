@@ -42,6 +42,7 @@ class BigqueryMigration
         insert_select
         copy_table
         table_info
+        migrate_partitioned_table
       ])
     end
 
@@ -74,6 +75,13 @@ class BigqueryMigration
         columns: config[:columns],
         backup_dataset: config[:backup_dataset],
         backup_table: config[:backup_table]
+      )
+    end
+
+    def migrate_partitioned_table
+      client.migrate_partitioned_table(
+        schema_file: config[:schema_file],
+        columns: config[:columns],
       )
     end
 

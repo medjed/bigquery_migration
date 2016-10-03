@@ -595,6 +595,131 @@ else
           assert { Schema.diff_columns(expected, after_columns) == [] }
         end
       end
+
+      sub_test_case "migrate_partitioned_table" do
+        def setup
+          instance.drop_table
+        end
+
+        def teardown
+          instance.drop_table
+        end
+
+        def test_create_partitioned_table
+          columns = [
+            { name: 'remained_column', type: 'INTEGER' },
+            { name: 'record', type: 'RECORD', fields: [
+              { name: 'record', type: 'RECORD', fields: [
+                { name: 'remained_column', type: 'STRING' },
+              ] }
+            ] }
+          ]
+          expected = columns.dup
+
+          result = instance.migrate_partitioned_table(columns: columns)
+          after_columns = result[:after_columns]
+
+          assert { result[:responses][:insert_table].time_partitioning.type == 'DAY' }
+          assert { Schema.diff_columns(expected, after_columns) == [] }
+          assert { Schema.diff_columns(after_columns, expected) == [] }
+        end
+
+        def test_add_columns
+          before_columns = [
+            { name: 'remained_column', type: 'INTEGER' },
+            { name: 'record', type: 'RECORD', fields: [
+              { name: 'record', type: 'RECORD', fields: [
+                { name: 'remained_column', type: 'STRING' },
+              ] }
+            ] }
+          ]
+          instance.create_partitioned_table(columns: before_columns)
+
+          columns = [
+            { name: 'remained_column', type: 'INTEGER' },
+            { name: 'record', type: 'RECORD', fields: [
+              { name: 'record', type: 'RECORD', fields: [
+                { name: 'remained_column', type: 'STRING' },
+                { name: 'new_column', type: 'INTEGER' },
+                { name: 'new_record', type: 'RECORD', fields: [
+                  { name: 'new_column', type: 'INTEGER' },
+                ] }
+              ] }
+            ] },
+            { name: 'new_column', type: 'INTEGER' },
+          ]
+          expected = columns.dup
+
+          result = instance.migrate_partitioned_table(columns: columns)
+          after_columns = result[:after_columns]
+
+          assert { Schema.diff_columns(expected, after_columns) == [] }
+          assert { Schema.diff_columns(after_columns, expected) == [] }
+        end
+
+        def test_add_drop
+          before_columns = [
+            { name: 'remained_column', type: 'INTEGER' },
+            { name: 'record', type: 'RECORD', fields: [
+              { name: 'record', type: 'RECORD', fields: [
+                { name: 'remained_column', type: 'STRING' },
+                { name: 'drop_column', type: 'STRING' },
+              ] }
+            ] },
+            { name: 'drop_column', type: 'INTEGER' },
+          ]
+          instance.create_partitioned_table(columns: before_columns)
+
+          columns = [
+            { name: 'remained_column', type: 'INTEGER' },
+            { name: 'record', type: 'RECORD', fields: [
+              { name: 'record', type: 'RECORD', fields: [
+                { name: 'remained_column', type: 'STRING' },
+                { name: 'add_column', type: 'INTEGER' },
+              ] },
+            ] },
+            { name: 'add_column', type: 'STRING', mode: 'REPEATED' },
+            { name: 'add_record', type: 'RECORD', fields: [
+              { name: 'add_column1', type: 'STRING' },
+            ]}
+          ]
+
+          expected = [
+            { name: 'remained_column', type: 'INTEGER' },
+            { name: 'record', type: 'RECORD', fields: [
+              { name: 'record', type: 'RECORD', fields: [
+                { name: 'remained_column', type: 'STRING' },
+                { name: 'drop_column', type: 'STRING', mode: 'NULLABLE'},
+                { name: 'add_column', type: 'INTEGER' },
+              ] },
+            ] },
+            { name: 'drop_column', type: 'INTEGER', mode: 'NULLABLE' },
+            { name: 'add_column', type: 'STRING', mode: 'REPEATED' },
+            { name: 'add_record', type: 'RECORD', fields: [
+              { name: 'add_column1', type: 'STRING' },
+            ]}
+          ]
+
+          result = instance.migrate_partitioned_table(columns: columns)
+          after_columns = result[:after_columns]
+
+          assert { Schema.diff_columns(expected, after_columns) == [] }
+          assert { Schema.diff_columns(after_columns, expected) == [] }
+        end
+
+        def test_type_change_raised
+          before_columns = [
+            { name: 'type_change', type: 'STRING' },
+          ]
+          instance.create_partitioned_table(columns: before_columns)
+
+          columns = [
+            { name: 'type_change', type: 'INTEGER' },
+          ]
+
+          assert_raise { instance.migrate_partitioned_table(columns: columns) }
+        end
+      end
     end
   end
 end
