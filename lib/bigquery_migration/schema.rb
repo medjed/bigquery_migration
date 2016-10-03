@@ -70,7 +70,6 @@ class BigqueryMigration
       self.class.build_query_fields(source_columns, self)
     end
 
-
     class << self
       # The name must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_),
       # and must start with a letter or underscore. The maximum length is 128 characters.
@@ -382,6 +381,17 @@ class BigqueryMigration
             #  We have to add columns with patch_table beforehand
           end
         end
+      end
+
+      def make_nullable!(columns)
+        columns.each do |column|
+          if column[:fields]
+            make_nullable!(column[:fields])
+          else
+            column[:mode] = 'NULLABLE'
+          end
+        end
+        columns
       end
     end
   end

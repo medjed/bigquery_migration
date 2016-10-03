@@ -199,7 +199,7 @@ class BigqueryMigration
       result.merge!({ responses: { get_table: response } })
     end
 
-    def insert_table(dataset: nil, table: nil, columns: )
+    def insert_table(dataset: nil, table: nil, columns:, options: {})
       dataset ||= self.dataset
       table ||= self.table
       raise Error, "columns is empty" if columns.empty?
@@ -215,6 +215,14 @@ class BigqueryMigration
             fields: schema,
           }
         }
+
+        if options['time_partitioning']
+          body[:time_partitioning] = {
+            type: options['time_partitioning']['type'],
+            expiration_ms: options['time_partitioning']['expiration_ms'],
+          }
+        end
+
         opts = {}
         logger.debug { "#{head}insert_table(#{project}, #{dataset}, #{body}, #{opts})" }
         unless dry_run?
@@ -233,6 +241,12 @@ class BigqueryMigration
       { responses: { insert_table: response } }
     end
     alias :create_table :insert_table
+
+    def insert_partitioned_table(dataset: nil, table: nil, columns:, options: {})
+      options['time_partitioning'] = {'type'=>'DAY'}
+      insert_table(dataset: dataset, table: table, columns: columns, options: options)
+    end
+    alias :create_partitioned_table :insert_partitioned_table
 
     def delete_table(dataset: nil, table: nil)
       dataset ||= self.dataset
@@ -672,6 +686,48 @@ class BigqueryMigration
                       backup_dataset: backup_dataset, backup_table: backup_table)
         elsif !add_columns.empty?
           add_column(table: table, columns: columns)
+        end
+      end
+
+      after_columns = existing_columns
+
+      if after_columns.empty? and !dry_run?
+        raise Error, "after_columns is empty. " \
+          "before_columns: #{before_columns}, after_columns: #{after_columns}, columns: #{columns}"
+      end
+
+      result.merge!( before_columns: before_columns, after_columns: after_columns )
+    end
+
+    # creates a table with time_partitioning option
+    # this version only uses patch table API (no query job) because querying partitioned table should cost lots
+    def migrate_partitioned_table(table: nil, schema_file: nil, columns: nil, options: {})
+      table ||= self.table
+
+      if schema_file.nil? and columns.nil?
+        raise ArgumentError, '`schema_file` or `columns` is required'
+      end
+      if schema_file
+        columns = HashUtil.deep_symbolize_keys(JSON.parse(File.read(schema_file)))
+      end
+      Schema.validate_columns!(columns)
+
+      result = {}
+      begin
+        get_table
+      rescue NotFoundError
+        before_columns = []
+        result = create_partitioned_table(table: table, columns: columns, options: options)
+      else
+        before_columns = existing_columns
+        add_columns  = Schema.diff_columns(before_columns, columns)
+        drop_columns = Schema.diff_columns(columns, before_columns)
+
+        if !drop_columns.empty? || !add_columns.empty?
+          Schema.make_nullable!(drop_columns) # drop columns will be NULLABLE columns
+          Schema.reverse_merge!(columns, patch_columns = drop_columns)
+          Schema.reverse_merge!(patch_columns, patch_columns = add_columns)
+          patch_table(table: table, columns: patch_columns)
         end
       end
 

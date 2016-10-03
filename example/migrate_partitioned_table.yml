@@ -1,0 +1,23 @@
+bigquery: &bigquery
+  json_keyfile: example/your-project-000.json
+  dataset: your_dataset_name
+  table: your_table_name
+
+actions:
+- action: create_dataset
+  <<: *bigquery
+- action: migrate_partitioned_table
+  <<: *bigquery
+  columns:
+    - { name: 'timestamp', type: 'TIMESTAMP' }
+    - name: 'record'
+      type: 'RECORD'
+      fields:
+        - { name: 'string', type: 'STRING' }
+        - { name: 'integer', type: 'INTEGER' }
+        - { name: 'bytes', type: 'BYTES' }
+- action: migrate_partitioned_table
+  <<: *bigquery
+  schema_file: example/schema.json
+- action: delete_table
+  <<: *bigquery
