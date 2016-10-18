@@ -65,8 +65,7 @@ class BigqueryMigration
     private def generate_value(columns: nil, rows: nil, count: nil)
       logger.info { "generate_value(columns: #{columns}, rows: #{rows}, count: #{count})" }
       value = []
-      return value if rows.nil?
-      return [nil] if rows.empty?
+      return [nil] if (rows.nil? || rows.empty?)
       validate_rows!(rows)
       rows[:f].zip(columns).each do |row, column|
         if column[:type] == 'RECORD'
