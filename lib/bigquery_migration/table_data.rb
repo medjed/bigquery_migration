@@ -33,7 +33,7 @@ class BigqueryMigration
     # So, rows must be a hash and hash has key f:.
     private def calculate_repeated_count(columns: nil, rows: nil)
       logger.info { "calculate_repeated_count(columns: #{columns}, rows: #{rows})" }
-      return [1] if rows.nil?
+      return [1] if (rows.nil? || rows.empty?)
       validate_rows!(rows)
       rows[:f].zip(columns).map do |row, column|
         if column[:type] == 'RECORD'
@@ -65,7 +65,7 @@ class BigqueryMigration
     private def generate_value(columns: nil, rows: nil, count: nil)
       logger.info { "generate_value(columns: #{columns}, rows: #{rows}, count: #{count})" }
       value = []
-      return value if rows.nil?
+      return [nil] if (rows.nil? || rows.empty?)
       validate_rows!(rows)
       rows[:f].zip(columns).each do |row, column|
         if column[:type] == 'RECORD'
