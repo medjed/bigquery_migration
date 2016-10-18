@@ -484,6 +484,63 @@ class BigqueryMigration
 
         assert { TableData.new(columns, rows).generate_values == expected }
       end
+
+      def test_generate_values_record_with_empty_hash
+        columns = [
+          { name: "test", type: "STRING" },
+          { name: "record1", type: "RECORD", fields: [
+            { name: "child", type: "STRING" },
+          ] },
+          { name: "record2", type: "RECORD", fields: [
+            { name: "child", type: "STRING" }
+          ] },
+          { name: "record3", type: "RECORD", mode: "REPEATED", fields: [
+            { name: "array", type: "INTEGER", mode: "REPEATED" }
+          ] },
+          { name: "date", type: "STRING" },
+          { name: "timestamp", type: "TIMESTAMP" }
+          ]
+
+        rows = [
+          { f: [
+            { v: 'fuga' },
+            { v:
+              { f: [
+                { v: 'hoge' },
+              ] }
+            },
+            { v: {} },
+
+            { v: [
+              { v:
+                { f: [
+                  { v: [
+                    { v: '1' }
+                    ] }
+                ] }
+              },
+              { v:
+                { f: [
+                  { v: [
+                    { v: '4' }
+                  ] }
+                ] }
+              }
+            ] },
+            { v: '2016-10-17' },
+            { v: '1.47663E9' }
+          ] }
+        ]
+
+        expected = [
+          [
+            ["fuga", "hoge", nil, "1", "2016-10-17", "1.47663E9"],
+            [nil, nil, nil, "4", nil, nil]
+          ]
+        ]
+
+        assert { TableData.new(columns, rows).generate_values == expected }
+      end
     end
   end
 end
