@@ -3,8 +3,8 @@ require 'bigquery_migration/table_data'
 
 class BigqueryMigration
   class TestTableData < Test::Unit::TestCase
-    sub_test_case "generate_values" do
-      def test_generate_values_simple
+    sub_test_case "values" do
+      def test_values_simple
         columns = [
           { name: 'string', type: 'STRING', mode: 'NULLABLE'},
           { name: 'integer', type: 'INTEGER', mode: 'NULLABLE'},
@@ -35,10 +35,10 @@ class BigqueryMigration
           [ "bar", "2", "2.2", "false", "1.444435200E9" ]
         ]
 
-        assert { TableData.new(columns, rows).generate_values == expected }
+        assert { TableData.new(columns, rows).values == expected }
       end
 
-      def test_generate_values_with_empty_hash
+      def test_values_with_empty_hash
         columns = [
           {name: "category", type: "STRING"},
           {name: "number", type: "INTEGER"},
@@ -61,10 +61,10 @@ class BigqueryMigration
           [ "dummyEventCategory03", "5678", nil, "2016-07-25", "1.4693724E9" ],
         ]
 
-        assert { TableData.new(columns, rows).generate_values == expected }
+        assert { TableData.new(columns, rows).values == expected }
       end
 
-      def test_generate_values_repeated_and_record_simple
+      def test_values_repeated_and_record_simple
         columns = [
           { name: 'repeated_record', type: 'RECORD', mode: 'REPEATED', fields: [
             { name: 'record', type: 'RECORD', mode: 'NULLABLE', fields: [
@@ -116,10 +116,10 @@ class BigqueryMigration
           ]
         ]
 
-        assert { TableData.new(columns, rows).generate_values == expected }
+        assert { TableData.new(columns, rows).values == expected }
       end
 
-      def test_generate_values_repeated_and_record_multiple
+      def test_values_repeated_and_record_multiple
         columns = [
           { name: 'repeated_record', type: 'RECORD', mode: 'REPEATED', fields: [
             { name: 'record', type: 'RECORD', mode: 'NULLABLE', fields: [
@@ -176,10 +176,10 @@ class BigqueryMigration
           ]
         ]
 
-        assert { TableData.new(columns, rows).generate_values == expected }
+        assert { TableData.new(columns, rows).values == expected }
       end
 
-      def test_generate_values_repeated_in_middle_row
+      def test_values_repeated_in_middle_row
         columns = [
           { "name": "string", "type": "STRING", "mode": "NULLABLE" },
           { "name": "integer", "type": "INTEGER", "mode": "NULLABLE" },
@@ -191,40 +191,40 @@ class BigqueryMigration
 
         rows = [
           { f: [
-          { v: "foo" },
-          { v: "1" },
-          { v: [] },
-          { v: "1.1" },
-          { v: "true" },
-          { v: "1.444435200E9" }
-         ] },
-        { f: [
-          { v: "foo" },
-          { v: "3" },
-          { v: [] },
-          { v: "3.3" },
-          { v: "true" },
-          { v: "1.444435200E9" }
-         ] },
-        { f: [
-          { v: "foo" },
-          { v: "4" },
-          { v: [] },
-          { v: "4.4" },
-          { v: "false" },
-          { v: "1.444435200E9" }
-         ] },
-        { f: [
-          { v: "foo" },
-          { v: "2" },
-          { v: [
             { v: "foo" },
-            { v: "bar" }
-           ] },
-          { v: "2.2" },
-          { v: "false" },
-          { v: "1.444435200E9" }
-         ] }
+            { v: "1" },
+            { v: [] },
+            { v: "1.1" },
+            { v: "true" },
+            { v: "1.444435200E9" }
+          ] },
+          { f: [
+            { v: "foo" },
+            { v: "3" },
+            { v: [] },
+            { v: "3.3" },
+            { v: "true" },
+            { v: "1.444435200E9" }
+          ] },
+          { f: [
+            { v: "foo" },
+            { v: "4" },
+            { v: [] },
+            { v: "4.4" },
+            { v: "false" },
+            { v: "1.444435200E9" }
+          ] },
+          { f: [
+            { v: "foo" },
+            { v: "2" },
+            { v: [
+              { v: "foo" },
+              { v: "bar" }
+            ] },
+            { v: "2.2" },
+            { v: "false" },
+            { v: "1.444435200E9" }
+          ] }
         ]
 
         expected = [
@@ -248,10 +248,10 @@ class BigqueryMigration
         ]
 
 
-        assert { TableData.new(columns, rows).generate_values == expected }
+        assert { TableData.new(columns, rows).values == expected }
       end
 
-      def test_generate_values_repeated_and_record_in_middle_row
+      def test_values_repeated_and_record_in_middle_row
         columns = [
           { "name": "string", "type": "STRING", "mode": "NULLABLE" },
           { "name": "integer", "type": "INTEGER", "mode": "NULLABLE" },
@@ -369,10 +369,10 @@ class BigqueryMigration
           ],
         ]
 
-        assert { TableData.new(columns, rows).generate_values == expected }
+        assert { TableData.new(columns, rows).values == expected }
       end
 
-      def test_generate_values_repeated_and_record_complex
+      def test_values_repeated_and_record_complex
         columns = [
           { name: 'repeated_record', type: 'RECORD', mode: 'REPEATED', fields: [
             { name: 'record', type: 'RECORD', mode: 'NULLABLE', fields: [
@@ -482,10 +482,10 @@ class BigqueryMigration
           ]
         ]
 
-        assert { TableData.new(columns, rows).generate_values == expected }
+        assert { TableData.new(columns, rows).values == expected }
       end
 
-      def test_generate_values_record_with_empty_hash
+      def test_values_record_with_empty_hash
         columns = [
           { name: "test", type: "STRING" },
           { name: "record1", type: "RECORD", fields: [
@@ -539,7 +539,7 @@ class BigqueryMigration
           ]
         ]
 
-        assert { TableData.new(columns, rows).generate_values == expected }
+        assert { TableData.new(columns, rows).values == expected }
       end
     end
   end

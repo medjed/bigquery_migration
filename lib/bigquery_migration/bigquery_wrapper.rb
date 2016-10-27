@@ -420,7 +420,7 @@ class BigqueryMigration
         {name: name}.merge!(column)
       end
       if rows = response.to_h[:rows]
-        values = TableData.new(columns, rows).generate_values
+        values = TableData.new(columns, rows).values
       end
 
       {
