@@ -32,7 +32,7 @@ class BigqueryMigration
     # This method called recursively.
     # So, rows must be a hash and hash has key f:.
     private def calculate_repeated_count(columns: nil, rows: nil)
-      logger.info { "calculate_repeated_count(columns: #{columns}, rows: #{rows})" }
+      # logger.info { "calculate_repeated_count(columns: #{columns}, rows: #{rows})" }
       return [1] if (rows.nil? || rows.empty?)
       validate_rows!(rows)
       rows[:f].zip(columns).map do |row, column|
@@ -63,7 +63,7 @@ class BigqueryMigration
     # This method called recursively.
     # So, rows must be a hash and hash has key f:.
     private def generate_value(columns: nil, rows: nil, count: nil)
-      logger.info { "generate_value(columns: #{columns}, rows: #{rows}, count: #{count})" }
+      # logger.info { "generate_value(columns: #{columns}, rows: #{rows}, count: #{count})" }
       value = []
       return [nil] if (rows.nil? || rows.empty?)
       validate_rows!(rows)
