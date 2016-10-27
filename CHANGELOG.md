@@ -4,11 +4,22 @@ Enhancements:
 
 * Support migrate_partitioned_table
 
+Fixes:
+
+* Fix list_table_data for when a value is an empty hash
+
+# 0.1.7 (2016/09/17)
+
+Fixes:
+
+* Prohibit to create a table with empty columns
+* Create a table only if a table does not exist
+
 # 0.1.6 (2016/07/26)
 
 Fixes:
 
-* Fix empty hash to nil
+* Fix empty hash to nil for list table data
 
 # 0.1.5 (2016/07/25)
 
