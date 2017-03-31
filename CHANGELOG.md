@@ -1,3 +1,9 @@
+# 0.2.1 (2017/03/31)
+
+Enhancements:
+
+* Accept DATE, DATETIME, TIME as column types
+
 # 0.2.0 (2016/10/03)
 
 Enhancements:
