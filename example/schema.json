@@ -18,5 +18,9 @@
   {
     "name":"boolean",
     "type":"BOOLEAN"
+  },
+  {
+    "name":"date",
+    "type":"DATE"
   }
 ]
