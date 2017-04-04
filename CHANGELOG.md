@@ -1,3 +1,9 @@
+# 0.2.2 (2017/04/04)
+
+Enhancements:
+
+* Support google-api-ruby-client >= v0.11.0
+
 # 0.2.1 (2017/03/31)
 
 Enhancements:
