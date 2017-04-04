@@ -53,8 +53,6 @@ class BigqueryMigration
       end
 
       config[:retries] ||= 5
-      config[:timeout_sec] ||= 300
-      config[:open_timeout_sec] ||= 300
     end
 
     def project
@@ -90,8 +88,17 @@ class BigqueryMigration
 
       client = Google::Apis::BigqueryV2::BigqueryService.new
       client.request_options.retries = config[:retries]
-      client.request_options.timeout_sec = config[:timeout_sec]
-      client.request_options.open_timeout_sec = config[:open_timeout_sec]
+      if client.request_options.respond_to?(:timeout_sec)
+        client.request_options.open_timeout_sec = config[:open_timeout_sec] || 300
+        client.request_options.timeout_sec = config[:timeout_sec] || 300
+      else # google-api-ruby-client >= v0.11.0
+        if config[:timeout_sec]
+          logger.warn { "timeout_sec is deprecated in google-api-ruby-client >= v0.11.0. Use read_timeout_sec instead" }
+        end
+        client.client_options.open_timeout_sec = config[:open_timeout_sec] || 300 # default: 60
+        client.client_options.send_timeout_sec = config[:send_timeout_sec] || 300 # default: 120
+        client.client_options.read_timeout_sec = config[:read_timeout_sec] || config[:timeout_sec] || 300 # default: 60
+      end
       logger.debug { "client_options: #{client.client_options.to_h}" }
       logger.debug { "request_options: #{client.request_options.to_h}" }
 
