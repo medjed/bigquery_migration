@@ -1,3 +1,9 @@
+# 0.3.0 (2017/04/26)
+
+Enhancements:
+
+* Support more authentication methods such as oauth, compute_engine, application_default
+
 # 0.2.2 (2017/04/04)
 
 Enhancements:
