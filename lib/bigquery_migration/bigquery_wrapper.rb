@@ -8,6 +8,7 @@ require_relative 'hash_util'
 require 'google/apis/bigquery_v2'
 require 'google/api_client/auth/key_utils'
 require 'securerandom'
+require 'inifile'
 
 class BigqueryMigration
   class BigqueryWrapper
@@ -20,92 +21,50 @@ class BigqueryMigration
     def initialize(config, opts = {})
       @config = HashUtil.deep_symbolize_keys(config)
       @opts = HashUtil.deep_symbolize_keys(opts)
-      configure
-    end
-
-    def configure
-      if json_keyfile = config[:json_keyfile]
-        json_key =
-          case json_keyfile
-          when String
-            File.read(json_keyfile)
-          when Hash
-            json_keyfile[:content]
-          else
-            raise ConfigError.new "Unsupported json_keyfile type"
-          end
-        json_keyparams =
-          begin
-            case json_key
-            when String
-              HashUtil.deep_symbolize_keys(JSON.parse(json_key))
-            when Hash
-              HashUtil.deep_symbolize_keys(json_key)
-            end
-          rescue => e
-            raise ConfigError.new "json_keyfile is not a JSON file"
-          end
-      end
-
-      if json_keyparams
-        config[:project] ||= json_keyparams[:project_id]
-        config[:json_key] = json_keyparams.to_json
-      end
-
-      config[:retries] ||= 5
-    end
-
-    def project
-      @project ||= config[:project] || raise(ConfigError, '`project` is required.')
-    end
-
-    def dataset
-      @dataset ||= config[:dataset] || raise(ConfigError, '`dataset` is required.')
-    end
-
-    def table
-      @table  ||= config[:table]   || raise(ConfigError, '`table` is required.')
-    end
-
-    def job_status_polling_interval
-      @job_status_polling_interval ||= config[:job_status_polling_interval] || 5
-    end
-
-    def job_status_max_polling_time
-      @job_status_max_polling_time ||= config[:job_status_polling_time] || 3600
-    end
-
-    def dry_run?
-      @opts[:dry_run]
-    end
-
-    def head
-      dry_run? ? '(DRY-RUN) ' : '(EXECUTE) '
     end
 
     def client
       return @cached_client if @cached_client && @cached_client_expiration > Time.now
 
       client = Google::Apis::BigqueryV2::BigqueryService.new
-      client.request_options.retries = config[:retries]
+      client.request_options.retries = retries
+      client.client_options.open_timeout_sec = open_timeout_sec
       if client.request_options.respond_to?(:timeout_sec)
-        client.request_options.open_timeout_sec = config[:open_timeout_sec] || 300
-        client.request_options.timeout_sec = config[:timeout_sec] || 300
+        client.client_options.timeout_sec = timeout_sec
       else # google-api-ruby-client >= v0.11.0
-        if config[:timeout_sec]
+        if timeout_sec
           logger.warn { "timeout_sec is deprecated in google-api-ruby-client >= v0.11.0. Use read_timeout_sec instead" }
         end
-        client.client_options.open_timeout_sec = config[:open_timeout_sec] || 300 # default: 60
-        client.client_options.send_timeout_sec = config[:send_timeout_sec] || 300 # default: 120
-        client.client_options.read_timeout_sec = config[:read_timeout_sec] || config[:timeout_sec] || 300 # default: 60
+        client.client_options.send_timeout_sec = send_timeout_sec
+        client.client_options.read_timeout_sec = read_timeout_sec
       end
       logger.debug { "client_options: #{client.client_options.to_h}" }
       logger.debug { "request_options: #{client.request_options.to_h}" }
 
       scope = "https://www.googleapis.com/auth/bigquery"
 
-      key = StringIO.new(config[:json_key])
-      auth = Google::Auth::ServiceAccountCredentials.make_creds(json_key_io: key, scope: scope)
+      case auth_method
+      when 'authorized_user'
+        auth = Signet::OAuth2::Client.new(
+          token_credential_uri: "https://accounts.google.com/o/oauth2/token",
+          audience: "https://accounts.google.com/o/oauth2/token",
+          scope: scope,
+          client_id:     credentials['client_id'],
+          client_secret: credentials['client_secret'],
+          refresh_token: credentials['refresh_token']
+        )
+        auth.refresh!
+      when 'compute_engine'
+        auth = Google::Auth::GCECredentials.new
+      when 'service_account'
+        key = StringIO.new(credentials.to_json)
+        auth = Google::Auth::ServiceAccountCredentials.make_creds(json_key_io: key, scope: scope)
+      when 'application_default'
+        auth = Google::Auth.get_application_default([scope])
+      else
+        raise ConfigError, "Unknown auth method: #{auth_method}"
+      end
+
       client.authorization = auth
 
       @cached_client_expiration = Time.now + 1800
@@ -746,6 +705,109 @@ class BigqueryMigration
       end
 
       result.merge!( before_columns: before_columns, after_columns: after_columns )
+    end
+
+    # compute_engine, authorized_user, service_account
+    def auth_method
+      @auth_method ||= ENV['AUTH_METHOD'] || config.fetch(:auth_method, nil) || credentials['type'] || 'compute_engine'
+    end
+
+    def credentials
+      JSON.parse(config.fetch(:credentials, nil) || File.read(credentials_file))
+    end
+
+    def credentials_file
+      @credentials_file ||= File.expand_path(
+        # ref. https://developers.google.com/identity/protocols/application-default-credentials
+        ENV['GOOGLE_APPLICATION_CREDENTIALS'] ||
+        config.fetch(:credentials_file, nil) ||
+        config.fetch(:json_keyfile, nil) || # json_keyfile is for old version compatibility
+        (File.exist?(global_application_default_credentials_file) ? global_application_default_credentials_file : application_default_credentials_file)
+      )
+    end
+
+    def application_default_credentials_file
+      @application_default_credentials_file ||= File.expand_path("~/.config/gcloud/application_default_credentials.json")
+    end
+
+    def global_application_default_credentials_file
+      @global_application_default_credentials_file ||= '/etc/google/auth/application_default_credentials.json'
+    end
+
+    def config_default_file
+      File.expand_path('~/.config/gcloud/configurations/config_default')
+    end
+
+    def config_default
+      # {core:{account:'xxx',project:'xxx'},compute:{zone:'xxx}}
+      @config_default ||= File.readable?(config_default_file) ? HashUtil.deep_symbolize_keys(IniFile.load(config_default_file).to_h) : {}
+    end
+
+    def service_account_default
+      (config_default[:core] || {})[:account]
+    end
+
+    def project_default
+      (config_default[:core] || {})[:project]
+    end
+
+    def zone_default
+      (config_default[:compute] || {})[:zone]
+    end
+
+    def service_account
+      @service_account ||= ENV['GOOGLE_SERVICE_ACCOUNT'] || config.fetch(:service_account, nil) || credentials['client_email'] || service_account_default
+    end
+
+    def retries
+      @retries ||= ENV['RETRIES'] || config.fetch(:retries, nil) || 5
+    end
+
+    # For google-api-client < 0.11.0. Deprecated
+    def timeout_sec
+      @timeout_sec ||= ENV['TIMEOUT_SEC'] || config.fetch(:timeout_sec, nil)
+    end
+
+    def send_timeout_sec
+      @send_timeout_sec ||= ENV['SEND_TIMEOUT_SEC'] || config.fetch(:send_timeout_sec, nil) || 60
+    end
+
+    def read_timeout_sec
+      @read_timeout_sec ||= ENV['READ_TIMEOUT_SEC'] || config.fetch(:read_timeout_sec, nil) || timeout_sec || 300
+    end
+
+    def open_timeout_sec
+      @open_timeout_sec ||= ENV['OPEN_TIMEOUT_SEC'] || config.fetch(:open_timeout_sec, nil) || 300
+    end
+
+    def project
+      @project ||= ENV['GOOGLE_PROJECT'] || config.fetch(:project, nil) || credentials['project_id']
+      @project ||= credentials['client_email'].chomp('.iam.gserviceaccount.com').split('@').last if credentials['client_email']
+      @project ||= project_default || raise(ConfigError, '`project` is required.')
+    end
+
+    def dataset
+      @dataset ||= config[:dataset] || raise(ConfigError, '`dataset` is required.')
+    end
+
+    def table
+      @table  ||= config[:table]   || raise(ConfigError, '`table` is required.')
+    end
+
+    def job_status_polling_interval
+      @job_status_polling_interval ||= config[:job_status_polling_interval] || 5
+    end
+
+    def job_status_max_polling_time
+      @job_status_max_polling_time ||= config[:job_status_polling_time] || 3600
+    end
+
+    def dry_run?
+      @opts[:dry_run]
+    end
+
+    def head
+      dry_run? ? '(DRY-RUN) ' : '(EXECUTE) '
     end
   end
 end
