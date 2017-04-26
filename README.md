@@ -95,11 +95,38 @@ This tool has an advantage that it is **faster** than reloading data entirely.
 
 ### Run example:
 
-Prepare `example/your-project-000.json`, then
+**Service Account**
+
+Prepare your service account json at `example/your-project-000.json`, then
 
 ```
 $ bundle exec bq_migrate run example/example.yml # dry-run
 $ bundle exec bq_migrate run example/example.yml --exec
+```
+
+**OAuth**
+
+Install gcloud into your development environment:
+
+```
+curl https://sdk.cloud.google.com | bash
+gcloud init
+gcloud auth login
+gcloud auth application-default login
+gcloud config set project <GCP_PROJECT_NAME>
+```
+
+Make sure `gcloud` works
+
+```
+gcloud compute instances list
+```
+
+Run as:
+
+```
+$ bundle exec bq_migrate run example/application_default.yml # dry-run
+$ bundle exec bq_migrate run example/application_default.yml --exec
 ```
 
 ### Run test:
@@ -110,7 +137,7 @@ $ bundle exec rake test
 
 To run tests which directly connects to BigQuery, prepare `example/your-project-000.json`, then
 
-````
+```
 $ bundle exec rake test
 ```
 

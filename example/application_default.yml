@@ -1,5 +1,5 @@
 bigquery: &bigquery
-  credentials_file: example/your-project-000.json
+  # project: read from ~/.config/gcloud/configurations/config_default
   dataset: your_dataset_name
   table: your_table_name
 
@@ -15,9 +15,9 @@ actions:
       fields:
         - { name: 'string', type: 'STRING' }
         - { name: 'integer', type: 'INTEGER' }
-- action: table_info
-  table: your_table_name
+        - { name: 'bytes', type: 'BYTES' }
+- action: migrate_table
   <<: *bigquery
-- action: table_info
-  prefix: your_table_name
+  schema_file: example/schema.json
+- action: delete_table
   <<: *bigquery
