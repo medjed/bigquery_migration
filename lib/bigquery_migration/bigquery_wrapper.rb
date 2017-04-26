@@ -707,13 +707,33 @@ class BigqueryMigration
       result.merge!( before_columns: before_columns, after_columns: after_columns )
     end
 
+    # For old version compatibility
+    # Use credentials_file or credentials instead
+    def json_key
+      if json_keyfile = config[:json_keyfile]
+        begin
+          case json_keyfile
+          when String
+            return JSON.parse(File.read(json_keyfile))
+          when Hash
+            return json_keyfile[:content]
+          else
+            raise ConfigError.new "Unsupported json_keyfile type"
+          end
+        rescue => e
+          raise ConfigError.new "json_keyfile is not a JSON file"
+        end
+      end
+      nil
+    end
+
     # compute_engine, authorized_user, service_account
     def auth_method
       @auth_method ||= ENV['AUTH_METHOD'] || config.fetch(:auth_method, nil) || credentials['type'] || 'compute_engine'
     end
 
     def credentials
-      JSON.parse(config.fetch(:credentials, nil) || File.read(credentials_file))
+      json_key || JSON.parse(config.fetch(:credentials, nil) || File.read(credentials_file))
     end
 
     def credentials_file
@@ -721,7 +741,6 @@ class BigqueryMigration
         # ref. https://developers.google.com/identity/protocols/application-default-credentials
         ENV['GOOGLE_APPLICATION_CREDENTIALS'] ||
         config.fetch(:credentials_file, nil) ||
-        config.fetch(:json_keyfile, nil) || # json_keyfile is for old version compatibility
         (File.exist?(global_application_default_credentials_file) ? global_application_default_credentials_file : application_default_credentials_file)
       )
     end
