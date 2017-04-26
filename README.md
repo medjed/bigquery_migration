@@ -2,6 +2,10 @@
 
 BigqueryMigraiton is a tool or a ruby library to migrate (or alter) BigQuery table schema.
 
+## Requirements
+
+* Ruby >= 2.3.0
+
 ## Installation
 
 Add this line to your application's Gemfile:
