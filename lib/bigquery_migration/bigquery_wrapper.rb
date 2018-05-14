@@ -30,7 +30,7 @@ class BigqueryMigration
       client.request_options.retries = retries
       client.client_options.open_timeout_sec = open_timeout_sec
       if client.request_options.respond_to?(:timeout_sec)
-        client.client_options.timeout_sec = timeout_sec
+        client.request_options.timeout_sec = timeout_sec
       else # google-api-ruby-client >= v0.11.0
         if timeout_sec
           logger.warn { "timeout_sec is deprecated in google-api-ruby-client >= v0.11.0. Use read_timeout_sec instead" }
