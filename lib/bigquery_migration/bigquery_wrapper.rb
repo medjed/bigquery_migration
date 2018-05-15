@@ -49,9 +49,9 @@ class BigqueryMigration
           token_credential_uri: "https://accounts.google.com/o/oauth2/token",
           audience: "https://accounts.google.com/o/oauth2/token",
           scope: scope,
-          client_id:     credentials['client_id'],
-          client_secret: credentials['client_secret'],
-          refresh_token: credentials['refresh_token']
+          client_id:     credentials[:client_id],
+          client_secret: credentials[:client_secret],
+          refresh_token: credentials[:refresh_token]
         )
         auth.refresh!
       when 'compute_engine'
@@ -714,7 +714,7 @@ class BigqueryMigration
         begin
           case json_keyfile
           when String
-            return JSON.parse(File.read(json_keyfile))
+            return HashUtil.deep_symbolize_keys(JSON.parse(File.read(json_keyfile)))
           when Hash
             return json_keyfile[:content]
           else
@@ -729,11 +729,11 @@ class BigqueryMigration
 
     # compute_engine, authorized_user, service_account
     def auth_method
-      @auth_method ||= ENV['AUTH_METHOD'] || config.fetch(:auth_method, nil) || credentials['type'] || 'compute_engine'
+      @auth_method ||= ENV['AUTH_METHOD'] || config.fetch(:auth_method, nil) || credentials[:type] || 'compute_engine'
     end
 
     def credentials
-      json_key || JSON.parse(config.fetch(:credentials, nil) || File.read(credentials_file))
+      json_key || HashUtil.deep_symbolize_keys(JSON.parse(config.fetch(:credentials, nil) || File.read(credentials_file)))
     end
 
     def credentials_file
@@ -775,7 +775,7 @@ class BigqueryMigration
     end
 
     def service_account
-      @service_account ||= ENV['GOOGLE_SERVICE_ACCOUNT'] || config.fetch(:service_account, nil) || credentials['client_email'] || service_account_default
+      @service_account ||= ENV['GOOGLE_SERVICE_ACCOUNT'] || config.fetch(:service_account, nil) || credentials[:client_email] || service_account_default
     end
 
     def retries
@@ -800,8 +800,8 @@ class BigqueryMigration
     end
 
     def project
-      @project ||= ENV['GOOGLE_PROJECT'] || config.fetch(:project, nil) || credentials['project_id']
-      @project ||= credentials['client_email'].chomp('.iam.gserviceaccount.com').split('@').last if credentials['client_email']
+      @project ||= ENV['GOOGLE_PROJECT'] || config.fetch(:project, nil) || credentials[:project_id]
+      @project ||= credentials[:client_email].chomp('.iam.gserviceaccount.com').split('@').last if credentials[:client_email]
       @project ||= project_default || raise(ConfigError, '`project` is required.')
     end
 
