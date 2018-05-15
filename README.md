@@ -35,6 +35,8 @@ bigquery: &bigquery
   json_keyfile: your-project-000.json
   dataset: your_dataset_name
   table: your_table_name
+  # If your data is in a location other than the US or EU multi-region, you must specify the location
+  # location: asia-northeast1
 
 actions:
 - action: create_dataset
@@ -63,9 +65,12 @@ $ bundle exec bq_migrate run config.yml --exec
 require 'bigquery_migration'
 
 config = {
-  json_keyfile: '/path/to/your-project-000.json'
-  dataset: 'your_dataset_name'
-  table: 'your_table_name'
+  json_keyfile: '/path/to/your-project-000.json',
+  dataset: 'your_dataset_name',
+  table: 'your_table_name',
+
+  # If your data is in a location other than the US or EU multi-region, you must specify the location
+  # location: asia-northeast1,
 }
 columns = [
   { name: 'string', type: 'STRING' },
