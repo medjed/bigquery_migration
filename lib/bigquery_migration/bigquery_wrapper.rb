@@ -116,7 +116,9 @@ class BigqueryMigration
             dataset_id: dataset,
           },
         }.merge(hint)
+        body[:location] = location if location
         opts = {}
+
         logger.debug { "#{head}insert_dataset(#{project}, #{body}, #{opts})" }
         unless dry_run?
           response = client.insert_dataset(project, body, opts)
@@ -479,6 +481,7 @@ class BigqueryMigration
           }
         }
       }
+      body[:job_reference][:location] = location if location
       opts = {}
 
       logger.info  { "#{head}insert_job(#{project}, #{body}, #{opts})" }
@@ -519,6 +522,7 @@ class BigqueryMigration
           }
         }
       }
+      body[:job_reference][:location] = location if location
       opts = {}
 
       logger.info { "#{head}insert_job(#{project}, #{body}, #{opts})" }
@@ -563,7 +567,11 @@ class BigqueryMigration
             "job_id:[#{job_id}] elapsed_time:#{elapsed.to_f}sec status:[#{status}]"
           }
           sleep wait_interval
-          _response = client.get_job(project, job_id)
+          if support_location_keyword?
+            _response = client.get_job(project, job_id, location: location)
+          else
+            _response = client.get_job(project, job_id)
+          end
         end
       end
 
@@ -707,6 +715,11 @@ class BigqueryMigration
       result.merge!( before_columns: before_columns, after_columns: after_columns )
     end
 
+    # the location keyword arguments are available in google-api-client v0.19.6 or later
+    def support_location_keyword?
+      @support_location_keyword ||= client.method(:get_job).parameters.include?([:key, :location])
+    end
+
     # For old version compatibility
     # Use credentials_file or credentials instead
     def json_key
@@ -811,6 +824,10 @@ class BigqueryMigration
 
     def table
       @table  ||= config[:table]   || raise(ConfigError, '`table` is required.')
+    end
+
+    def location
+      config[:location]
     end
 
     def job_status_polling_interval
