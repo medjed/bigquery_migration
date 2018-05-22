@@ -1,3 +1,9 @@
+# 0.3.1 (2018/05/23)
+
+Enhancements:
+
+* Support newly added location option of google-api-ruby-client.
+
 # 0.3.0 (2017/04/26)
 
 Enhancements:
