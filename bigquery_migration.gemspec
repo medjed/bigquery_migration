@@ -6,8 +6,8 @@ require 'bigquery_migration/version'
 Gem::Specification.new do |spec|
   spec.name          = "bigquery_migration"
   spec.version       = BigqueryMigration::VERSION
-  spec.authors       = ["Naotoshi Seo"]
-  spec.email         = ["sonots@gmail.com"]
+  spec.authors       = ["Naotoshi Seo", "kysnm", "potato2003"]
+  spec.email         = ["sonots@gmail.com", "tokyoincidents.g@gmail.com", "potato2003@gmail.com"]
 
   spec.summary       = %q{Migrate BigQuery table schema}
   spec.description   = %q{Migrate BigQuery table schema.}
