@@ -29,5 +29,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "pry-byebug"
   spec.add_development_dependency "test-unit"
   spec.add_development_dependency "test-unit-rr"
-  spec.add_development_dependency "test-unit-power_assert"
 end
