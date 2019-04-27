@@ -25,6 +25,7 @@ else
             'dataset'      => 'bigquery_migration_unittest',
             'table'        => 'test',
           }
+          instance = BigqueryWrapper.new(config)
           assert_nothing_raised { instance.project }
           assert_nothing_raised { instance.dataset }
           assert_nothing_raised { instance.table }
