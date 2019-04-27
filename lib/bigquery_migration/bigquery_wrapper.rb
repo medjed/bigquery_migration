@@ -88,7 +88,7 @@ class BigqueryMigration
       dataset ||= self.dataset
       begin
         logger.info { "Get dataset... #{project}:#{dataset}" }
-        client.get_dataset(project, dataset)
+        response = client.get_dataset(project, dataset)
       rescue Google::Apis::ServerError, Google::Apis::ClientError, Google::Apis::AuthorizationError => e
         if e.status_code == 404
           raise NotFoundError, "Dataset #{project}:#{dataset} is not found"
