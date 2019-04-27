@@ -729,7 +729,14 @@ class BigqueryMigration
           when String
             return HashUtil.deep_symbolize_keys(JSON.parse(File.read(json_keyfile)))
           when Hash
-            return json_keyfile[:content]
+            case json_keyfile[:content]
+            when String
+              return HashUtil.deep_symbolize_keys(JSON.parse(json_keyfile[:content]))
+            when Hash
+              return json_keyfile[:content]
+            else
+              raise ConfigError.new "Unsupported json_keyfile type"
+            end
           else
             raise ConfigError.new "Unsupported json_keyfile type"
           end

@@ -32,6 +32,21 @@ else
           assert_nothing_raised { instance.client }
         end
 
+        def test_configure_json_keyfile_content_json
+          config = {
+            'json_keyfile' => {
+              'content' => File.read(JSON_KEYFILE),
+            },
+            'dataset'      => 'bigquery_migration_unittest',
+            'table'        => 'test',
+          }
+          instance = BigqueryWrapper.new(config)
+          assert_nothing_raised { instance.project }
+          assert_nothing_raised { instance.dataset }
+          assert_nothing_raised { instance.table }
+          assert_nothing_raised { instance.client }
+        end
+
         def test_configure_json_keyfile_content_hash
           config = {
             'json_keyfile' => {
