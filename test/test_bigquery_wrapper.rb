@@ -18,6 +18,13 @@ else
         }
       end
 
+      def config_for_location
+        self.config.merge({
+          'dataset'      => 'bigquery_migration_unittest_asia_northeast1',
+          'location'     => 'asia-northeast1',
+        })
+      end
+
       sub_test_case "configure" do
         def test_configure_json_keyfile
           config = {
@@ -61,25 +68,51 @@ else
         end
       end
 
-      def test_create_dataset
-        assert_nothing_raised { instance.create_dataset }
-        assert_nothing_raised { instance.get_dataset }
+      sub_test_case "create_dataset" do
+        def test_create_dataset
+          assert_nothing_raised { instance.create_dataset }
+          assert_nothing_raised { instance.get_dataset }
+        end
+
+        sub_test_case "with location option" do
+          def test_create_dataset
+            instance = BigqueryWrapper.new(config_for_location)
+            assert_nothing_raised { instance.create_dataset }
+            result = instance.get_dataset
+            assert { result[:responses][:get_dataset].location == 'asia-northeast1' }
+          end
+        end
       end
 
-      def test_create_table
-        instance.drop_table rescue nil
-        columns = [
-          { name: 'column1', type: 'INTEGER' },
-          { name: 'column2', type: 'STRING' },
-          { name: 'column3', type: 'FLOAT' },
-          { name: 't',       type: 'TIMESTAMP' },
-          { name: 'record',  type: 'RECORD', fields:[
-            { name: 'column4', type: 'STRING' },
-            { name: 'column5', type: 'INTEGER' },
-          ]},
-        ]
-        assert_nothing_raised { instance.create_table(columns: columns) }
-        assert_nothing_raised { instance.get_table }
+      sub_test_case "create_table" do
+        def test_create_table
+          instance.drop_table rescue nil
+          columns = [
+            { name: 'column1', type: 'INTEGER' },
+            { name: 'column2', type: 'STRING' },
+            { name: 'column3', type: 'FLOAT' },
+            { name: 't',       type: 'TIMESTAMP' },
+            { name: 'record',  type: 'RECORD', fields:[
+              { name: 'column4', type: 'STRING' },
+              { name: 'column5', type: 'INTEGER' },
+            ]},
+          ]
+          assert_nothing_raised { instance.create_table(columns: columns) }
+          assert_nothing_raised { instance.get_table }
+        end
+
+        sub_test_case "with location option" do
+          def test_create_table
+            instance = BigqueryWrapper.new(config_for_location)
+            instance.drop_table rescue nil
+            columns = [
+              { name: 'column1', type: 'INTEGER' },
+            ]
+            assert_nothing_raised { instance.create_table(columns: columns) }
+            result = instance.get_table
+            assert { result[:location] == 'asia-northeast1' }
+          end
+        end
       end
 
       def test_drop_table
@@ -355,6 +388,25 @@ else
           assert_nothing_raised { instance.get_table(table: 'insert_table') }
         ensure
           instance.drop_table(table: 'insert_table')
+        end
+
+        sub_test_case "with location option" do
+          def test_insert_select
+            columns = [{ 'name' => 'id', 'type' => 'INTEGER' }]
+
+            instance = BigqueryWrapper.new(config_for_location)
+            instance.drop_table rescue nil
+            instance.create_table(columns: columns)
+  
+            query = "SELECT id FROM [#{config_for_location['dataset']}.#{config_for_location['table']}]"
+            assert_nothing_raised do
+              instance.insert_select(destination_table: 'insert_table', query: query)
+            end
+            result = instance.get_table(table: 'insert_table')
+            assert { result[:location] == 'asia-northeast1' }
+          ensure
+            instance.drop_table(table: 'insert_table')
+          end
         end
       end
 
