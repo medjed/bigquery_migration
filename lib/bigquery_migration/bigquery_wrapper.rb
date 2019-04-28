@@ -191,6 +191,12 @@ class BigqueryMigration
           }
         end
 
+        if clustering && clustering[:fields]
+          body[:clustering] = {
+            fields: clustering[:fields]
+          }
+        end
+
         opts = {}
         logger.debug { "#{head}insert_table(#{project}, #{dataset}, #{body}, #{opts})" }
         unless dry_run?
@@ -835,6 +841,10 @@ class BigqueryMigration
 
     def location
       config[:location]
+    end
+
+    def clustering
+      config[:clustering]
     end
 
     def job_status_polling_interval

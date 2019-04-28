@@ -1,0 +1,28 @@
+bigquery: &bigquery
+  credentials_file: example/your-project-000.json
+  dataset: your_dataset_name
+  table: your_clustered_table_name
+  clustering:
+    fields:
+      - timestamp
+      - integer
+
+actions:
+- action: create_dataset
+  <<: *bigquery
+- action: migrate_partitioned_table
+  <<: *bigquery
+  columns:
+    - { name: 'timestamp', type: 'TIMESTAMP' }
+    - { name: 'integer', type: 'INTEGER' }
+    - name: 'record'
+      type: 'RECORD'
+      fields:
+        - { name: 'string', type: 'STRING' }
+        - { name: 'integer', type: 'INTEGER' }
+        - { name: 'bytes', type: 'BYTES' }
+- action: migrate_partitioned_table
+  <<: *bigquery
+  schema_file: example/schema.json
+- action: delete_table
+  <<: *bigquery
