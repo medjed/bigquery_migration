@@ -1,3 +1,9 @@
+# 0.3.2 (2019/04/29)
+
+Enhancements:
+
+* Support clustered table
+
 # 0.3.1 (2018/05/23)
 
 Enhancements:
