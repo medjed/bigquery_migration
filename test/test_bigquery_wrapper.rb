@@ -773,6 +773,38 @@ else
 
           assert_raise { instance.migrate_partitioned_table(columns: columns) }
         end
+
+        sub_test_case "with clustering option" do
+          def test_create_partitioned_table
+            instance = BigqueryWrapper.new(config.merge({
+              clustering: {
+                fields: ['remained_column_a', 'remained_column_b'],
+              },
+            }))
+
+            columns = [
+              { name: 'remained_column_a', type: 'STRING' },
+              { name: 'remained_column_b', type: 'INTEGER' },
+              { name: 'remained_column_c', type: 'INTEGER' },
+              { name: 'record', type: 'RECORD', fields: [
+                { name: 'record', type: 'RECORD', fields: [
+                  { name: 'remained_column', type: 'STRING' },
+                ] }
+              ] }
+            ]
+            expected = columns.dup
+
+            result = instance.migrate_partitioned_table(columns: columns)
+            after_columns = result[:after_columns]
+
+            assert { result[:responses][:insert_table].time_partitioning.type == 'DAY' }
+            assert { result[:responses][:insert_table].clustering.fields == ['remained_column_a', 'remained_column_b'] }
+            assert { Schema.diff_columns(expected, after_columns) == [] }
+            assert { Schema.diff_columns(after_columns, expected) == [] }
+          ensure
+            instance.drop_table
+          end
+        end
       end
     end
   end
