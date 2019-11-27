@@ -188,6 +188,7 @@ class BigqueryMigration
           body[:time_partitioning] = {
             type: options['time_partitioning']['type'],
             expiration_ms: options['time_partitioning']['expiration_ms'],
+            field: options['time_partitioning']['field'],
           }
         end
 
@@ -217,7 +218,8 @@ class BigqueryMigration
     alias :create_table :insert_table
 
     def insert_partitioned_table(dataset: nil, table: nil, columns:, options: {})
-      options['time_partitioning'] = {'type'=>'DAY'}
+      options['time_partitioning'] ||= {}
+      options['time_partitioning']['type'] = 'DAY'
       insert_table(dataset: dataset, table: table, columns: columns, options: options)
     end
     alias :create_partitioned_table :insert_partitioned_table
