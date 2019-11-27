@@ -661,6 +661,7 @@ else
 
         def test_create_partitioned_table
           columns = [
+            { name: 'partition_column', type: 'TIMESTAMP' },
             { name: 'remained_column', type: 'INTEGER' },
             { name: 'record', type: 'RECORD', fields: [
               { name: 'record', type: 'RECORD', fields: [
@@ -668,12 +669,18 @@ else
               ] }
             ] }
           ]
+          options = {
+            'time_partitioning' => { 'expiration_ms' => 86400000, 'field' => 'partition_column' },
+          }
+
           expected = columns.dup
 
-          result = instance.migrate_partitioned_table(columns: columns)
+          result = instance.migrate_partitioned_table(columns: columns, options: options)
           after_columns = result[:after_columns]
 
           assert { result[:responses][:insert_table].time_partitioning.type == 'DAY' }
+          assert { result[:responses][:insert_table].time_partitioning.expiration_ms == 86400000 }
+          assert { result[:responses][:insert_table].time_partitioning.field == 'partition_column' }
           assert { Schema.diff_columns(expected, after_columns) == [] }
           assert { Schema.diff_columns(after_columns, expected) == [] }
         end
