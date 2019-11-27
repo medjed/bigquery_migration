@@ -19,5 +19,8 @@ actions:
 - action: migrate_partitioned_table
   <<: *bigquery
   schema_file: example/schema.json
+  options:
+    time_partitioning:
+      field: timestamp
 - action: delete_table
   <<: *bigquery
